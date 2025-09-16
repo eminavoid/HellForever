@@ -1,12 +1,12 @@
-﻿public interface IQueueTDA
+﻿public interface IQueueTDA<TEntity>
 {
-    void InicializarCola();
+    void InicializarCola(int cantidad);
     // siempre que la cola este inicializada
-    void Acolar(int x);
+    void Acolar(TEntity x);
     // siempre que la cola este inicializada y no este vacıa
     void Desacolar();
     // siempre que la cola este inicializada
     bool ColaVacia();
     // siempre que la cola este inicializada y no este vacıa
-    int Primero();
+    TEntity Primero();
 }

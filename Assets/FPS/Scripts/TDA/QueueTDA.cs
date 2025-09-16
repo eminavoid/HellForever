@@ -1,15 +1,15 @@
-public class QueueTDA : IQueueTDA
+public class QueueTDA<TEntity> : IQueueTDA<TEntity>
 {
-    int[] a; // arreglo en donde se guarda la informacion
+    TEntity[] a; // arreglo en donde se guarda la informacion
     int indice; // variable entera en donde se guarda la cantidad de elementos que se tienen guardados
 
-    public void InicializarCola()
+    public void InicializarCola(int cantidad)
     {
-        a = new int[100];
+        a = new TEntity[cantidad];
         indice = 0;
     }
 
-    public void Acolar(int x)
+    public void Acolar(TEntity x)
     {
         for (int i = indice - 1; i >= 0; i--)
         {
@@ -29,7 +29,7 @@ public class QueueTDA : IQueueTDA
         return (indice == 0);
     }
 
-    public int Primero()
+    public TEntity Primero()
     {
         return a[indice - 1];
     }

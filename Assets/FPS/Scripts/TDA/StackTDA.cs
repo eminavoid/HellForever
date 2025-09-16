@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-public class StackTDA : IStackTDA
+public class StackTDA<TEntity> : IStackTDA<TEntity>
 {
     // arreglo en donde se guarda la informacion
-    int[] a;
+    TEntity[] a;
     // cantidad de anillos de datos de la pila
     int cantidad_datos_max;
     // variable entera en donde se guarda la cantidad de elementos que se tienen guardados
@@ -13,11 +13,11 @@ public class StackTDA : IStackTDA
     public void InicializarPila(int cantidad)
     {
         cantidad_datos_max = cantidad;
-        a = new int[cantidad];
+        a = new TEntity[cantidad];
         indice = 0;
     }
 
-    public int Apilar(int x)
+    public int Apilar(TEntity x)
     {
         if (indice < cantidad_datos_max)
         {
@@ -32,18 +32,12 @@ public class StackTDA : IStackTDA
 
     }
 
-    public int Desapilar()
+    public void Desapilar()
     {
         if (!PilaVacia())
         {
             indice--;
-            return indice;
         }
-        else
-        {
-            return 0;
-        }
-
     }
 
     public bool PilaVacia()
@@ -51,7 +45,7 @@ public class StackTDA : IStackTDA
         return (indice == 0);
     }
 
-    public int Tope()
+    public TEntity Tope()
     {
         return a[indice - 1];
     }
@@ -63,10 +57,5 @@ public class StackTDA : IStackTDA
             Console.WriteLine("Elemento: " + a[i]);
         }
 
-    }
-
-    void IStackTDA.Desapilar()
-    {
-        throw new System.NotImplementedException();
     }
 }
