@@ -24,7 +24,7 @@ namespace Unity.FPS.ours
                 m_waveManager.registerSpawner(this);
             } else
             {
-                Console.WriteLine("que paso aquiiiii");
+                Debug.Log("Failed to find wave manager");
             }
 
                 
@@ -38,7 +38,8 @@ namespace Unity.FPS.ours
 
         public void SpawnEnemyOnRadius(GameObject enemy)
         {
-            Instantiate(enemy, new Vector3(Random.Range(gameObject.transform.position.x - radius, gameObject.transform.position.x + radius), Random.Range(gameObject.transform.position.y - radius, gameObject.transform.position.y + radius), gameObject.transform.position.z), gameObject.transform.rotation);
+            Debug.Log("esta haciendo spawn");
+            Instantiate(enemy.gameObject, gameObject.transform);
         }
     }
 }
