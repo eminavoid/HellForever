@@ -29,6 +29,8 @@ namespace Unity.FPS.Game
     [RequireComponent(typeof(AudioSource))]
     public class WeaponController : MonoBehaviour
     {
+        public string WeaponId = "Rifle";
+
         [Header("Information")] [Tooltip("The name that will be displayed in the UI for this weapon")]
         public string WeaponName;
 
@@ -148,6 +150,18 @@ namespace Unity.FPS.Game
         public bool IsCooling { get; private set; }
         public float CurrentCharge { get; private set; }
         public Vector3 MuzzleWorldVelocity { get; private set; }
+
+        public float CurrentAmmo => m_CurrentAmmo;  // read-only view
+        public void SetAmmo(float amount)           // write ammo safely
+        {
+            m_CurrentAmmo = Mathf.Clamp(amount, 0, MaxAmmo);
+        }
+
+        // Optional: helper to add ammo
+        public void AddAmmo(float amount)
+        {
+            SetAmmo(m_CurrentAmmo + amount);
+        }
 
         public float GetAmmoNeededToShoot() =>
             (ShootType != WeaponShootType.Charge ? 1f : Mathf.Max(1f, AmmoUsedOnStartCharge)) /
