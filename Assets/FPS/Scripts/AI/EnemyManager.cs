@@ -10,6 +10,8 @@ namespace Unity.FPS.AI
         public int NumberOfEnemiesTotal { get; private set; }
         public int NumberOfEnemiesRemaining => Enemies.Count;
 
+
+
         void Awake()
         {
             Enemies = new List<EnemyController>();

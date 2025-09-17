@@ -32,7 +32,6 @@ namespace Unity.FPS.Game
 
         float m_TimeLoadEndGameScene;
         string m_SceneToLoad;
-
         void Awake()
         {
             EventManager.AddListener<AllObjectivesCompletedEvent>(OnAllObjectivesCompleted);
