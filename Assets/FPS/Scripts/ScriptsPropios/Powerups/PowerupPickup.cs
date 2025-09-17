@@ -11,9 +11,16 @@ namespace Unity.FPS.Ours
         {
             var col = GetComponent<Collider>();
             col.isTrigger = true;
-        }
 
-        void OnTriggerEnter(Collider other)
+            var rb = GetComponent<Rigidbody>();
+            if (!rb) rb = gameObject.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+        void OnTriggerEnter(Collider other) => TryGive(other);
+        void OnTriggerStay(Collider other) => TryGive(other);
+
+        void TryGive(Collider other)
         {
             var runner = other.GetComponent<EntityQueueRunner>();
             if (runner != null && Powerup != null)
@@ -22,5 +29,6 @@ namespace Unity.FPS.Ours
                 Destroy(gameObject);
             }
         }
+        
     }
 }

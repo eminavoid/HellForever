@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using Unity.FPS.Game;
+using Unity.FPS.Ours;
 using UnityEngine;
 
 namespace Unity.FPS.Gameplay
 {
-    public class ProjectileStandard : ProjectileBase
+    public class ProjectileStandard : ProjectileBase, IHasDamageMultiplier
     {
         [Header("General")] [Tooltip("Radius of this projectile's collision detection")]
         public float Radius = 0.01f;
@@ -65,6 +66,9 @@ namespace Unity.FPS.Gameplay
         List<Collider> m_IgnoredColliders;
 
         const QueryTriggerInteraction k_TriggerInteraction = QueryTriggerInteraction.Collide;
+
+        float _damageMultiplier = 1f;
+        public void SetDamageMultiplier(float multiplier) => _damageMultiplier = multiplier;
 
         void OnEnable()
         {
@@ -222,20 +226,29 @@ namespace Unity.FPS.Gameplay
 
         void OnHit(Vector3 point, Vector3 normal, Collider collider)
         {
-            // damage
-            if (AreaOfDamage)
+            float baseDamage = Damage;
+            float finalDamage = baseDamage * _damageMultiplier;
+
+            if (AreaOfDamage) // <-- AOE PATH
             {
-                // area damage
-                AreaOfDamage.InflictDamageInArea(Damage, point, HittableLayers, k_TriggerInteraction,
+                AreaOfDamage.InflictDamageInArea(finalDamage, point, HittableLayers, k_TriggerInteraction,
                     m_ProjectileBase.Owner);
+
+                Debug.Log($"[Projectile] AOE | BaseDamage={baseDamage} FinalDamage={finalDamage}");
             }
-            else
+            else // <-- POINT PATH
             {
-                // point damage
                 Damageable damageable = collider.GetComponent<Damageable>();
                 if (damageable)
                 {
-                    damageable.InflictDamage(Damage, false, m_ProjectileBase.Owner);
+                    // (optional) pull Health to show HP before/after
+                    var health = collider.GetComponentInParent<Health>();
+                    float hpBefore = health ? health.CurrentHealth : -1f;
+
+                    damageable.InflictDamage(finalDamage, false, m_ProjectileBase.Owner);
+
+                    float hpAfter = health ? health.CurrentHealth : -1f;
+                    Debug.Log($"[Projectile] Hit {collider.name} | BaseDamage={baseDamage} FinalDamage={finalDamage} | HP Before={hpBefore} | HP After={hpAfter}");
                 }
             }
 

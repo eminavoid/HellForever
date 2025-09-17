@@ -1,6 +1,7 @@
 ﻿using Unity.FPS.Game;
 using UnityEngine;
 using UnityEngine.Events;
+using Unity.FPS.Ours;
 
 namespace Unity.FPS.Gameplay
 {
@@ -193,9 +194,8 @@ namespace Unity.FPS.Gameplay
                 if (RecievesFallDamage && fallSpeedRatio > 0f)
                 {
                     float dmgFromFall = Mathf.Lerp(FallDamageAtMinSpeed, FallDamageAtMaxSpeed, fallSpeedRatio);
-                    //float dmgMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.DamageTakenMultiplier : 1f;
-                    //m_Health.TakeDamage(dmgFromFall * dmgMul, null);
-                    m_Health.TakeDamage(dmgFromFall, null);
+                    float dmgMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.DamageTakenMultiplier : 1f;
+                    m_Health.TakeDamage(dmgFromFall * dmgMul, null);
                     AudioSource.PlayOneShot(FallDamageSfx);
                 }
                 else
@@ -289,9 +289,8 @@ namespace Unity.FPS.Gameplay
 
                 if (wantJump)
                 {
-                    //float jMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.JumpHeightMultiplier : 1f;
-                    //verticalVel = JumpForce * jMul;
-                    verticalVel = JumpForce;
+                    float jMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.JumpHeightMultiplier : 1f;
+                    verticalVel = JumpForce * jMul;
                     AudioSource.PlayOneShot(JumpSfx);
                     m_LastTimeJumped = Time.time;
                     HasJumpedThisFrame = true;

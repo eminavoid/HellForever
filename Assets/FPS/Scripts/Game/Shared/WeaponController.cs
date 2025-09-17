@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.FPS.Ours;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -249,12 +250,19 @@ namespace Unity.FPS.Game
 
         void UpdateAmmo()
         {
-            if (AutomaticReload && m_LastTimeShot + AmmoReloadDelay < Time.time && m_CurrentAmmo < MaxAmmo && !IsCharging)
-            {
-                // reloads weapon over time
-                m_CurrentAmmo += AmmoReloadRate * Time.deltaTime;
+            float reloadMul = 1f;
+            if (OwnerIsPlayer())
+                reloadMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.ReloadSpeedMultiplier : 1f;
 
-                // limits ammo to max value
+
+            float effectiveDelay = AmmoReloadDelay / Mathf.Max(0.01f, reloadMul);
+
+            float effectiveRate = AmmoReloadRate * Mathf.Max(0.01f, reloadMul);
+
+            if (AutomaticReload && m_LastTimeShot + effectiveDelay < Time.time && m_CurrentAmmo < MaxAmmo && !IsCharging)
+            {
+                float before = m_CurrentAmmo;
+                m_CurrentAmmo += effectiveRate * Time.deltaTime;
                 m_CurrentAmmo = Mathf.Clamp(m_CurrentAmmo, 0, MaxAmmo);
 
                 IsCooling = true;
@@ -265,14 +273,11 @@ namespace Unity.FPS.Game
             }
 
             if (MaxAmmo == Mathf.Infinity)
-            {
                 CurrentAmmoRatio = 1f;
-            }
             else
-            {
                 CurrentAmmoRatio = m_CurrentAmmo / MaxAmmo;
-            }
         }
+
 
         void UpdateCharge()
         {
@@ -392,8 +397,11 @@ namespace Unity.FPS.Game
 
         bool TryShoot()
         {
-            if (m_CurrentAmmo >= 1f
-                && m_LastTimeShot + DelayBetweenShots < Time.time)
+            float atkMul = 1f;
+            if (OwnerIsPlayer())
+                atkMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.AttackSpeedMultiplier : 1f;
+
+            if (m_CurrentAmmo >= 1f && m_LastTimeShot + (DelayBetweenShots / Mathf.Max(0.01f, atkMul)) < Time.time)
             {
                 HandleShoot();
                 m_CurrentAmmo -= 1f;
@@ -406,10 +414,11 @@ namespace Unity.FPS.Game
 
         bool TryBeginCharge()
         {
+            float atkMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.AttackSpeedMultiplier : 1f;
             if (!IsCharging
                 && m_CurrentAmmo >= AmmoUsedOnStartCharge
                 && Mathf.FloorToInt((m_CurrentAmmo - AmmoUsedOnStartCharge) * BulletsPerShot) > 0
-                && m_LastTimeShot + DelayBetweenShots < Time.time)
+                && m_LastTimeShot + (DelayBetweenShots / Mathf.Max(0.01f, atkMul)) < Time.time)
             {
                 UseAmmo(AmmoUsedOnStartCharge);
 
@@ -449,6 +458,17 @@ namespace Unity.FPS.Game
                 Vector3 shotDirection = GetShotDirectionWithinSpread(WeaponMuzzle);
                 ProjectileBase newProjectile = Instantiate(ProjectilePrefab, WeaponMuzzle.position,
                     Quaternion.LookRotation(shotDirection));
+                float weapMul = 1f;
+
+                if (OwnerIsPlayer()) 
+                    weapMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.WeaponDamageMultiplier : 1f;
+
+                if (newProjectile.TryGetComponent<IHasDamageMultiplier>(out var dmgConsumer))
+                {
+                    dmgConsumer.SetDamageMultiplier(weapMul);
+                    Debug.Log($"[Weapon] {Owner.name} -> {newProjectile.name} WeaponDamageMul={weapMul}");
+                }
+
                 newProjectile.Shoot(this);
             }
 
@@ -497,6 +517,10 @@ namespace Unity.FPS.Game
                 spreadAngleRatio);
 
             return spreadWorldDirection;
+        }
+        bool OwnerIsPlayer()
+        {
+            return Owner != null && Owner.CompareTag("Player");
         }
     }
 }
