@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.FPS.ours;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 
 namespace Unity.FPS.Game
@@ -15,20 +16,28 @@ namespace Unity.FPS.Game
         [SerializeField] private List<GameObject> spawnObjects;
         private QueueTDA<List<GameObject>> spawnQueue;
 
+        private bool firstWaveStart;
 
+        public int WavesCount { get { return wavesCount; } }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
+        void Awake()
         {
             spawners = new List<EnemySpawner>();
             spawnQueue = new QueueTDA<List<GameObject>>();
             spawnQueue.InicializarCola(wavesCount);
+            firstWaveStart = false;
+            WavesCreation();
         }
 
         // Update is called once per frame
         void Update()
         {
-
+            if (!firstWaveStart) 
+            {
+                WaveExecute();
+                firstWaveStart=true;
+            }
         }
 
         public void registerSpawner(EnemySpawner enemySpawner)
@@ -43,28 +52,33 @@ namespace Unity.FPS.Game
 
         public void WavesCreation()
         {
-
-            for (int i = 0; i < wavesCount; i++)
+            if (spawnQueue.ColaVacia())
             {
-                int enemyQuantity = Random.Range(minEnemyCount, maxEnemyCount);
-                List<GameObject> spawnObjects = new List<GameObject>();
-                for (int j = 0; j < enemyQuantity; j++)
+                for (int i = 0; i < wavesCount; i++)
                 {
-                    spawnObjects.Add(spawnObjects[Random.Range(0, spawnObjects.Count)]);
+                    int enemyQuantity = UnityEngine.Random.Range(minEnemyCount, maxEnemyCount);
+                    Debug.Log(enemyQuantity + " estos enemigos van a aparecer en la wave " + i);
+                    List<GameObject> spawnObjectsList = new List<GameObject>();
+                    for (int j = 0; j < enemyQuantity; j++)
+                    {
+                        spawnObjectsList.Add(spawnObjects[0]);
+                    }
+                    spawnQueue.Acolar(spawnObjectsList);
                 }
-                spawnQueue.Acolar(spawnObjects);
             }
         }
 
         public void WaveExecute()
         {
-            if (!spawnQueue.ColaVacia())
+            
+            if (!spawnQueue.ColaVacia() && spawners.Count != 0)
             {
                 List<GameObject> wave = spawnQueue.Primero();
+                Debug.Log("lista de wave tiene: " + wave.Count);
 
                 foreach (GameObject obj in wave)
                 {
-                    spawners[Random.Range(0, spawners.Count)].SpawnEnemyOnRadius(obj);
+                    spawners[0].SpawnEnemyOnRadius(obj);
                 }
 
                 spawnQueue.Desacolar();

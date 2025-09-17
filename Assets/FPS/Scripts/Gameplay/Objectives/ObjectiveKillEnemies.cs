@@ -14,21 +14,33 @@ namespace Unity.FPS.Gameplay
         [Tooltip("Start sending notification about remaining enemies when this amount of enemies is left")]
         public int NotificationEnemiesRemainingThreshold = 3;
 
+        public int wavesTotal;
+        public int wavesRemaining;
+
+        private WavesManager m_WaveManager;
+
         int m_KillTotal;
 
         protected override void Start()
         {
-            base.Start();
+            
+
+            m_WaveManager = FindAnyObjectByType<WavesManager>();
+
+            wavesTotal = m_WaveManager.WavesCount;
+            wavesRemaining = m_WaveManager.WavesCount - 1; 
 
             EventManager.AddListener<EnemyKillEvent>(OnEnemyKilled);
 
             // set a title and description specific for this type of objective, if it hasn't one
             if (string.IsNullOrEmpty(Title))
-                Title = "Eliminate " + (MustKillAllEnemies ? "all the" : KillsToCompleteObjective.ToString()) +
-                        " enemies";
+                Title = "Survive " + (MustKillAllEnemies ? "all the" : wavesTotal.ToString()) +
+                        " waves";
 
             if (string.IsNullOrEmpty(Description))
                 Description = GetUpdatedCounterAmount();
+
+            base.Start();
         }
 
         void OnEnemyKilled(EnemyKillEvent evt)
@@ -46,7 +58,25 @@ namespace Unity.FPS.Gameplay
             // update the objective text according to how many enemies remain to kill
             if (targetRemaining == 0)
             {
-                CompleteObjective(string.Empty, GetUpdatedCounterAmount(), "Objective complete : " + Title);
+                Debug.Log("waves restantes: " + wavesTotal);
+                if (wavesRemaining > 0)
+                {
+                    m_WaveManager.WaveExecute();
+                    m_KillTotal = 0;
+
+                    targetRemaining = MustKillAllEnemies ? evt.RemainingEnemyCount : KillsToCompleteObjective - m_KillTotal;
+                    string notificationText = NotificationEnemiesRemainingThreshold >= targetRemaining
+                    ? targetRemaining + " enemies to kill left"
+                    : string.Empty;
+
+                    UpdateObjective(string.Empty, GetUpdatedCounterAmount(), notificationText);
+                    wavesRemaining--;
+
+                    DisplayNewTitle("Wave " + (wavesTotal-wavesRemaining) + "incoming");
+                } else 
+                {
+                    CompleteObjective(string.Empty, GetUpdatedCounterAmount(), "Objective complete : " + Title);
+                }
             }
             else if (targetRemaining == 1)
             {
