@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.FPS.Ours;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace Unity.FPS.Game
@@ -48,15 +49,25 @@ namespace Unity.FPS.Game
                 return;
 
             float healthBefore = CurrentHealth;
-            CurrentHealth -= damage;
-            CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
 
-            // call OnDamage action
+            // Is this Health on the player?
+            bool isPlayer = CompareTag("Player");
+
+            float baseAmount = damage;
+            float mul = 1f;
+            if (isPlayer && GameplayModifiers.I != null)
+                mul = GameplayModifiers.I.DamageTakenMultiplier;
+
+            float final = baseAmount * mul;
+
+            CurrentHealth = Mathf.Clamp(CurrentHealth - final, 0f, MaxHealth);
+
+            Debug.Log($"[Health] {name} took damage from {(damageSource ? damageSource.name : "unknown")}" +
+                      $" | Base={baseAmount} Final={final} (Mul={mul}) | HP {healthBefore} -> {CurrentHealth}");
+
             float trueDamageAmount = healthBefore - CurrentHealth;
             if (trueDamageAmount > 0f)
-            {
                 OnDamaged?.Invoke(trueDamageAmount, damageSource);
-            }
 
             HandleDeath();
         }

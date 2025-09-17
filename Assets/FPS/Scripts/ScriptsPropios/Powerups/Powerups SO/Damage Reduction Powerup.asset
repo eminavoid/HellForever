@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Damage Reduction Powerup
   m_EditorClassIdentifier: 
   Duration: 10
-  DamageTakenMultiplierValue: 0.5
+  DamageTakenMultiplierValue: 0.25

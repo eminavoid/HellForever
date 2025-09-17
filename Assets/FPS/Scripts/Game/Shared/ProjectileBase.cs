@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
+using Unity.FPS.Ours;
 
 namespace Unity.FPS.Game
 {
