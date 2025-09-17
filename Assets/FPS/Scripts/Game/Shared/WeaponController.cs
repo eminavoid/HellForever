@@ -264,10 +264,7 @@ namespace Unity.FPS.Game
 
         void UpdateAmmo()
         {
-            float reloadMul = 1f;
-            if (OwnerIsPlayer())
-                reloadMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.ReloadSpeedMultiplier : 1f;
-
+            float reloadMul = OwnerIsPlayer() && GameplayModifiers.I ? GameplayModifiers.I.ReloadSpeedMultiplier : 1f;
 
             float effectiveDelay = AmmoReloadDelay / Mathf.Max(0.01f, reloadMul);
 
@@ -278,18 +275,17 @@ namespace Unity.FPS.Game
                 float before = m_CurrentAmmo;
                 m_CurrentAmmo += effectiveRate * Time.deltaTime;
                 m_CurrentAmmo = Mathf.Clamp(m_CurrentAmmo, 0, MaxAmmo);
-
                 IsCooling = true;
+
+                Debug.Log($"[Reload] +{(m_CurrentAmmo - before):F2} | baseRate={AmmoReloadRate:F2}/s effRate={effectiveRate:F2}/s mul={reloadMul:F2} | baseDelay={AmmoReloadDelay:F2}s effDelay={effectiveDelay:F2}s");
+
             }
             else
             {
                 IsCooling = false;
             }
 
-            if (MaxAmmo == Mathf.Infinity)
-                CurrentAmmoRatio = 1f;
-            else
-                CurrentAmmoRatio = m_CurrentAmmo / MaxAmmo;
+            CurrentAmmoRatio = float.IsInfinity(MaxAmmo) ? 1f : (m_CurrentAmmo / MaxAmmo);
         }
 
 
@@ -411,14 +407,14 @@ namespace Unity.FPS.Game
 
         bool TryShoot()
         {
-            float atkMul = 1f;
-            if (OwnerIsPlayer())
-                atkMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.AttackSpeedMultiplier : 1f;
+            float atkMul = OwnerIsPlayer() && GameplayModifiers.I ? GameplayModifiers.I.AttackSpeedMultiplier : 1f;
 
             if (m_CurrentAmmo >= 1f && m_LastTimeShot + (DelayBetweenShots / Mathf.Max(0.01f, atkMul)) < Time.time)
             {
                 HandleShoot();
                 m_CurrentAmmo -= 1f;
+                Debug.Log($"[FireGate] atkMul={atkMul}");
+
 
                 return true;
             }
@@ -472,15 +468,13 @@ namespace Unity.FPS.Game
                 Vector3 shotDirection = GetShotDirectionWithinSpread(WeaponMuzzle);
                 ProjectileBase newProjectile = Instantiate(ProjectilePrefab, WeaponMuzzle.position,
                     Quaternion.LookRotation(shotDirection));
-                float weapMul = 1f;
 
-                if (OwnerIsPlayer()) 
-                    weapMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.WeaponDamageMultiplier : 1f;
+                float weapMul = OwnerIsPlayer() && GameplayModifiers.I ? GameplayModifiers.I.WeaponDamageMultiplier : 1f;
 
                 if (newProjectile.TryGetComponent<IHasDamageMultiplier>(out var dmgConsumer))
                 {
                     dmgConsumer.SetDamageMultiplier(weapMul);
-                    Debug.Log($"[Weapon] {Owner.name} -> {newProjectile.name} WeaponDamageMul={weapMul}");
+                    Debug.Log($"[Weapon] pass WeaponDamageMul={weapMul} to {newProjectile.name}");
                 }
 
                 newProjectile.Shoot(this);
