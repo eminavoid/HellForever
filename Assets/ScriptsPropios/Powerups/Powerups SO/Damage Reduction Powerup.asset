@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa527850cf68fca409399ef15e207070, type: 3}
+  m_Script: {fileID: 11500000, guid: e84bf8daa7d1c934b91688b0d17eb014, type: 3}
   m_Name: Damage Reduction Powerup
   m_EditorClassIdentifier: 
   Duration: 10
-  DamageTakenMultiplierValue: 0.548
+  DamageTakenMultiplierValue: 0.5
