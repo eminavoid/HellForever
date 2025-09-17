@@ -72,7 +72,7 @@ namespace Unity.FPS.Gameplay
                     UpdateObjective(string.Empty, GetUpdatedCounterAmount(), notificationText);
                     wavesRemaining--;
 
-                    DisplayNewTitle("Wave " + (wavesTotal-wavesRemaining) + "incoming");
+                    DisplayNewTitle("Wave " + (wavesTotal-wavesRemaining) + " incoming");
                 } else 
                 {
                     CompleteObjective(string.Empty, GetUpdatedCounterAmount(), "Objective complete : " + Title);
