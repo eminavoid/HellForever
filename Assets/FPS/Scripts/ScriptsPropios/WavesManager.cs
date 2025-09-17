@@ -30,6 +30,11 @@ namespace Unity.FPS.Game
             WavesCreation();
         }
 
+        private void Start()
+        {
+            
+        }
+
         // Update is called once per frame
         void Update()
         {
@@ -57,11 +62,11 @@ namespace Unity.FPS.Game
                 for (int i = 0; i < wavesCount; i++)
                 {
                     int enemyQuantity = UnityEngine.Random.Range(minEnemyCount, maxEnemyCount);
-                    Debug.Log(enemyQuantity + " estos enemigos van a aparecer en la wave " + i);
+                    Debug.Log(spawnObjects.Count);
                     List<GameObject> spawnObjectsList = new List<GameObject>();
                     for (int j = 0; j < enemyQuantity; j++)
                     {
-                        spawnObjectsList.Add(spawnObjects[0]);
+                        spawnObjectsList.Add(spawnObjects[UnityEngine.Random.Range(0,spawnObjects.Count)]);
                     }
                     spawnQueue.Acolar(spawnObjectsList);
                 }
@@ -78,7 +83,7 @@ namespace Unity.FPS.Game
 
                 foreach (GameObject obj in wave)
                 {
-                    spawners[0].SpawnEnemyOnRadius(obj);
+                    spawners[UnityEngine.Random.Range(0, spawners.Count)].SpawnEnemyOnRadius(obj);
                 }
 
                 spawnQueue.Desacolar();
