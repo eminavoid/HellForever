@@ -7,16 +7,18 @@ namespace Unity.FPS.UI
 {
     public class FeedbackFlashHUD : MonoBehaviour
     {
-        [Header("References")] [Tooltip("Image component of the flash")]
+        [Header("References")]
+        [Tooltip("Image component of the flash")]
         public Image FlashImage;
 
-        [Tooltip("CanvasGroup to fade the damage flash, used when recieving damage end healing")]
+        [Tooltip("CanvasGroup to fade the damage flash, used when receiving damage and healing")]
         public CanvasGroup FlashCanvasGroup;
 
         [Tooltip("CanvasGroup to fade the critical health vignette")]
         public CanvasGroup VignetteCanvasGroup;
 
-        [Header("Damage")] [Tooltip("Color of the damage flash")]
+        [Header("Damage")]
+        [Tooltip("Color of the damage flash")]
         public Color DamageFlashColor;
 
         [Tooltip("Duration of the damage flash")]
@@ -25,13 +27,15 @@ namespace Unity.FPS.UI
         [Tooltip("Max alpha of the damage flash")]
         public float DamageFlashMaxAlpha = 1f;
 
-        [Header("Critical health")] [Tooltip("Max alpha of the critical vignette")]
+        [Header("Critical health")]
+        [Tooltip("Max alpha of the critical vignette")]
         public float CriticaHealthVignetteMaxAlpha = .8f;
 
         [Tooltip("Frequency at which the vignette will pulse when at critical health")]
         public float PulsatingVignetteFrequency = 4f;
 
-        [Header("Heal")] [Tooltip("Color of the heal flash")]
+        [Header("Heal")]
+        [Tooltip("Color of the heal flash")]
         public Color HealFlashColor;
 
         [Tooltip("Duration of the heal flash")]
@@ -47,24 +51,29 @@ namespace Unity.FPS.UI
 
         void Start()
         {
-            // Subscribe to player damage events
-            PlayerCharacterController playerCharacterController = FindFirstObjectByType<PlayerCharacterController>();
+            // Buscar al jugador en escena
+            PlayerCharacterController playerCharacterController = FindObjectOfType<PlayerCharacterController>();
             DebugUtility.HandleErrorIfNullFindObject<PlayerCharacterController, FeedbackFlashHUD>(
                 playerCharacterController, this);
 
-            m_PlayerHealth = playerCharacterController.GetComponent<Health>();
-            DebugUtility.HandleErrorIfNullGetComponent<Health, FeedbackFlashHUD>(m_PlayerHealth, this,
-                playerCharacterController.gameObject);
+            if (playerCharacterController != null)
+            {
+                m_PlayerHealth = playerCharacterController.GetComponent<Health>();
+                DebugUtility.HandleErrorIfNullGetComponent<Health, FeedbackFlashHUD>(m_PlayerHealth, this,
+                    playerCharacterController != null ? playerCharacterController.gameObject : null);
 
-            m_GameFlowManager = FindFirstObjectByType<GameFlowManager>();
+                m_PlayerHealth.OnDamaged += OnTakeDamage;
+                m_PlayerHealth.OnHealed += OnHealed;
+            }
+
+            m_GameFlowManager = FindObjectOfType<GameFlowManager>();
             DebugUtility.HandleErrorIfNullFindObject<GameFlowManager, FeedbackFlashHUD>(m_GameFlowManager, this);
-
-            m_PlayerHealth.OnDamaged += OnTakeDamage;
-            m_PlayerHealth.OnHealed += OnHealed;
         }
 
         void Update()
         {
+            if (m_PlayerHealth == null) return;
+
             if (m_PlayerHealth.IsCritical())
             {
                 VignetteCanvasGroup.gameObject.SetActive(true);
@@ -72,7 +81,7 @@ namespace Unity.FPS.UI
                     (1 - (m_PlayerHealth.CurrentHealth / m_PlayerHealth.MaxHealth /
                           m_PlayerHealth.CriticalHealthRatio)) * CriticaHealthVignetteMaxAlpha;
 
-                if (m_GameFlowManager.GameIsEnding)
+                if (m_GameFlowManager != null && m_GameFlowManager.GameIsEnding)
                     VignetteCanvasGroup.alpha = vignetteAlpha;
                 else
                     VignetteCanvasGroup.alpha =
@@ -82,7 +91,6 @@ namespace Unity.FPS.UI
             {
                 VignetteCanvasGroup.gameObject.SetActive(false);
             }
-
 
             if (m_FlashActive)
             {

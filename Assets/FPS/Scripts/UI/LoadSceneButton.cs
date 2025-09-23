@@ -1,7 +1,8 @@
 ﻿using Unity.FPS.Game;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
+using Photon.Pun; 
+
 
 namespace Unity.FPS.UI
 {
@@ -20,7 +21,8 @@ namespace Unity.FPS.UI
 
         public void LoadTargetScene()
         {
-            SceneManager.LoadScene(SceneName);
+            
+            PhotonNetwork.LoadLevel(SceneName);
         }
     }
 }

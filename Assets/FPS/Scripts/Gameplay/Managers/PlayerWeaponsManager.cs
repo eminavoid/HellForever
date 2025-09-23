@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Photon.Pun;
+using System.Collections.Generic;
 using Unity.FPS.Game;
 using UnityEngine;
 using UnityEngine.Events;
@@ -6,7 +7,7 @@ using UnityEngine.Events;
 namespace Unity.FPS.Gameplay
 {
     [RequireComponent(typeof(PlayerInputHandler))]
-    public class PlayerWeaponsManager : MonoBehaviour
+    public class PlayerWeaponsManager : MonoBehaviourPun
     {
         public enum WeaponSwitchState
         {
@@ -121,6 +122,9 @@ namespace Unity.FPS.Gameplay
 
         void Update()
         {
+            // 🔹 Solo el dueño procesa input de armas
+            if (!photonView.IsMine) return;
+
             // shoot handling
             WeaponController activeWeapon = GetActiveWeapon();
 
@@ -129,28 +133,32 @@ namespace Unity.FPS.Gameplay
 
             if (activeWeapon != null && m_WeaponSwitchState == WeaponSwitchState.Up)
             {
+                // ✅ Recarga manual
                 if (!activeWeapon.AutomaticReload && m_InputHandler.GetReloadButtonDown() && activeWeapon.CurrentAmmoRatio < 1.0f)
                 {
                     IsAiming = false;
                     activeWeapon.StartReloadAnimation();
                     return;
                 }
-                // handle aiming down sights
+
+                // ✅ Apuntar
                 IsAiming = m_InputHandler.GetAimInputHeld();
 
-                // handle shooting
+                // ✅ Disparo
                 bool hasFired = activeWeapon.HandleShootInputs(
                     m_InputHandler.GetFireInputDown(),
                     m_InputHandler.GetFireInputHeld(),
                     m_InputHandler.GetFireInputReleased());
 
-                // Handle accumulating recoil
+                // ✅ Retroceso acumulado
                 if (hasFired)
                 {
                     m_AccumulatedRecoil += Vector3.back * activeWeapon.RecoilForce;
                     m_AccumulatedRecoil = Vector3.ClampMagnitude(m_AccumulatedRecoil, MaxRecoilDistance);
                 }
             }
+        
+
 
             // weapon switch handling
             if (!IsAiming &&

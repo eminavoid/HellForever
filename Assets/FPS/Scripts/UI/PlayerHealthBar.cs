@@ -7,25 +7,30 @@ namespace Unity.FPS.UI
 {
     public class PlayerHealthBar : MonoBehaviour
     {
-        [Tooltip("Image component dispplaying current health")]
+        [Tooltip("Image component displaying current health")]
         public Image HealthFillImage;
 
         Health m_PlayerHealth;
 
         void Start()
         {
-            PlayerCharacterController playerCharacterController =
-                GameObject.FindFirstObjectByType<PlayerCharacterController>();
+            
+            PlayerCharacterController playerCharacterController = FindObjectOfType<PlayerCharacterController>();
             DebugUtility.HandleErrorIfNullFindObject<PlayerCharacterController, PlayerHealthBar>(
                 playerCharacterController, this);
 
-            m_PlayerHealth = playerCharacterController.GetComponent<Health>();
-            DebugUtility.HandleErrorIfNullGetComponent<Health, PlayerHealthBar>(m_PlayerHealth, this,
-                playerCharacterController.gameObject);
+            if (playerCharacterController != null)
+            {
+                m_PlayerHealth = playerCharacterController.GetComponent<Health>();
+                DebugUtility.HandleErrorIfNullGetComponent<Health, PlayerHealthBar>(
+                    m_PlayerHealth, this, playerCharacterController != null ? playerCharacterController.gameObject : null);
+            }
         }
 
         void Update()
         {
+            if (m_PlayerHealth == null) return;
+
             // update health bar value
             HealthFillImage.fillAmount = m_PlayerHealth.CurrentHealth / m_PlayerHealth.MaxHealth;
         }

@@ -2,11 +2,14 @@
 using UnityEngine;
 using UnityEngine.Events;
 using Unity.FPS.Ours;
+using Photon.Pun;
+using Photon.Realtime;
+
 
 namespace Unity.FPS.Gameplay
 {
     [RequireComponent(typeof(CharacterController), typeof(PlayerInputHandler), typeof(AudioSource))]
-    public class PlayerCharacterController : MonoBehaviour
+    public class PlayerCharacterController : MonoBehaviourPun
     {
         [Header("References")]
         [Tooltip("Reference to the main camera used for the player")]
@@ -154,20 +157,20 @@ namespace Unity.FPS.Gameplay
 
         void Start()
         {
+            if (!photonView.IsMine)
+            {
+                if (PlayerCamera != null)
+                    PlayerCamera.gameObject.SetActive(false);
+
+                if (AudioSource != null)
+                    AudioSource.enabled = false;
+            }
+
             m_Controller = GetComponent<CharacterController>();
-            DebugUtility.HandleErrorIfNullGetComponent<CharacterController, PlayerCharacterController>(m_Controller, this, gameObject);
-
             m_InputHandler = GetComponent<PlayerInputHandler>();
-            DebugUtility.HandleErrorIfNullGetComponent<PlayerInputHandler, PlayerCharacterController>(m_InputHandler, this, gameObject);
-
             m_WeaponsManager = GetComponent<PlayerWeaponsManager>();
-            DebugUtility.HandleErrorIfNullGetComponent<PlayerWeaponsManager, PlayerCharacterController>(m_WeaponsManager, this, gameObject);
-
             m_Health = GetComponent<Health>();
-            DebugUtility.HandleErrorIfNullGetComponent<Health, PlayerCharacterController>(m_Health, this, gameObject);
-
             m_Actor = GetComponent<Actor>();
-            DebugUtility.HandleErrorIfNullGetComponent<Actor, PlayerCharacterController>(m_Actor, this, gameObject);
 
             m_Controller.enableOverlapRecovery = true;
             m_Health.OnDie += OnDie;
@@ -178,6 +181,9 @@ namespace Unity.FPS.Gameplay
 
         void Update()
         {
+            // 🔹 Si este Player no es mío, no proceso input ni movimiento
+            if (!photonView.IsMine) return;
+
             if (!IsDead && transform.position.y < KillHeight)
                 m_Health.Kill();
 

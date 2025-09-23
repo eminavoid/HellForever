@@ -1,9 +1,10 @@
 ﻿using Unity.FPS.Game;
 using UnityEngine;
+using Photon.Pun;
 
 namespace Unity.FPS.Gameplay
 {
-    public class PlayerInputHandler : MonoBehaviour
+    public class PlayerInputHandler : MonoBehaviourPun
     {
         [Tooltip("Sensitivity multiplier for moving the camera around")]
         public float LookSensitivity = 1f;
@@ -24,13 +25,11 @@ namespace Unity.FPS.Gameplay
         PlayerCharacterController m_PlayerCharacterController;
         bool m_FireInputWasHeld;
 
+
         void Start()
         {
             m_PlayerCharacterController = GetComponent<PlayerCharacterController>();
-            DebugUtility.HandleErrorIfNullGetComponent<PlayerCharacterController, PlayerInputHandler>(
-                m_PlayerCharacterController, this, gameObject);
             m_GameFlowManager = FindFirstObjectByType<GameFlowManager>();
-            DebugUtility.HandleErrorIfNullFindObject<GameFlowManager, PlayerInputHandler>(m_GameFlowManager, this);
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -38,11 +37,13 @@ namespace Unity.FPS.Gameplay
 
         void LateUpdate()
         {
+            if (!photonView.IsMine) return; // 🔹 solo dueño procesa input
             m_FireInputWasHeld = GetFireInputHeld();
         }
 
         public bool CanProcessInput()
         {
+            if (!photonView.IsMine) return false; // 🔹 evita que otros lean input
             return Cursor.lockState == CursorLockMode.Locked && !m_GameFlowManager.GameIsEnding;
         }
 
@@ -52,13 +53,8 @@ namespace Unity.FPS.Gameplay
             {
                 Vector3 move = new Vector3(Input.GetAxisRaw(GameConstants.k_AxisNameHorizontal), 0f,
                     Input.GetAxisRaw(GameConstants.k_AxisNameVertical));
-
-                // constrain move input to a maximum magnitude of 1, otherwise diagonal movement might exceed the max move speed defined
-                move = Vector3.ClampMagnitude(move, 1);
-
-                return move;
+                return Vector3.ClampMagnitude(move, 1);
             }
-
             return Vector3.zero;
         }
 
