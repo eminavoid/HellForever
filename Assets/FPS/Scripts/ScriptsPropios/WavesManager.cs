@@ -54,14 +54,12 @@ namespace Unity.FPS.Game
             }
         }
 
-        //  Este callback se dispara cuando realmente estás en la Room
         public override void OnJoinedRoom()
         {
             Debug.Log("[WavesManager] OnJoinedRoom disparado.");
             TryLaunchWave();
         }
 
-        //  Si cambia el Master, el nuevo Master debe spawnear
         public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)
         {
             if (PhotonNetwork.IsMasterClient)
@@ -96,7 +94,7 @@ namespace Unity.FPS.Game
 
             foreach (GameObject obj in wave)
             {
-                string prefabName = obj.name; // debe coincidir con prefab en Resources/
+                string prefabName = obj.name;
                 var spawner = spawners[Random.Range(0, spawners.Count)];
                 spawner.SpawnEnemyOnRadius(prefabName);
             }

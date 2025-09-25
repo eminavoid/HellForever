@@ -10,28 +10,48 @@ namespace Unity.FPS.UI
         [Tooltip("Image component displaying current health")]
         public Image HealthFillImage;
 
-        Health m_PlayerHealth;
+        private Health m_PlayerHealth;
 
-        void Start()
+        public void SetPlayer(Health playerHealth)
         {
-            
-            PlayerCharacterController playerCharacterController = FindObjectOfType<PlayerCharacterController>();
-            DebugUtility.HandleErrorIfNullFindObject<PlayerCharacterController, PlayerHealthBar>(
-                playerCharacterController, this);
-
-            if (playerCharacterController != null)
+            if (m_PlayerHealth != null)
             {
-                m_PlayerHealth = playerCharacterController.GetComponent<Health>();
-                DebugUtility.HandleErrorIfNullGetComponent<Health, PlayerHealthBar>(
-                    m_PlayerHealth, this, playerCharacterController != null ? playerCharacterController.gameObject : null);
+                m_PlayerHealth.OnDamaged -= UpdateUI;
+                m_PlayerHealth.OnHealed -= UpdateUI;
+            }
+
+            m_PlayerHealth = playerHealth;
+
+            if (m_PlayerHealth != null)
+            {
+                m_PlayerHealth.OnDamaged += UpdateUI;  // (float, GameObject)
+                m_PlayerHealth.OnHealed += UpdateUI;  // (float)
+                RefreshBar();
             }
         }
 
-        void Update()
+        void OnDestroy()
+        {
+            if (m_PlayerHealth != null)
+            {
+                m_PlayerHealth.OnDamaged -= UpdateUI;
+                m_PlayerHealth.OnHealed -= UpdateUI;
+            }
+        }
+
+        private void UpdateUI(float _)   // OnHealed
+        {
+            RefreshBar();
+        }
+
+        private void UpdateUI(float _, GameObject __)  // OnDamaged
+        {
+            RefreshBar();
+        }
+
+        private void RefreshBar()
         {
             if (m_PlayerHealth == null) return;
-
-            // update health bar value
             HealthFillImage.fillAmount = m_PlayerHealth.CurrentHealth / m_PlayerHealth.MaxHealth;
         }
     }

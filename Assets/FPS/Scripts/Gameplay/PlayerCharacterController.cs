@@ -5,7 +5,6 @@ using Unity.FPS.Ours;
 using Photon.Pun;
 using Photon.Realtime;
 
-
 namespace Unity.FPS.Gameplay
 {
     [RequireComponent(typeof(CharacterController), typeof(PlayerInputHandler), typeof(AudioSource))]
@@ -181,7 +180,6 @@ namespace Unity.FPS.Gameplay
 
         void Update()
         {
-            // 🔹 Si este Player no es mío, no proceso input ni movimiento
             if (!photonView.IsMine) return;
 
             if (!IsDead && transform.position.y < KillHeight)
@@ -259,7 +257,7 @@ namespace Unity.FPS.Gameplay
             PlayerCamera.transform.localEulerAngles = new Vector3(m_CameraVerticalAngle, 0, 0);
 
             // Input as worldspace (relative to yaw)
-            Vector3 wishMove = transform.TransformVector(m_InputHandler.GetMoveInput()); // x,z in local -> world
+            Vector3 wishMove = transform.TransformVector(m_InputHandler.GetMoveInput());
             wishMove.y = 0f;
 
             bool isSprinting = m_InputHandler.GetSprintInputHeld();
@@ -274,22 +272,17 @@ namespace Unity.FPS.Gameplay
 
             if (IsGrounded)
             {
-                // Friction (only horizontal)
                 horizVel = ApplyGroundFriction(horizVel);
 
-                // Build target wish
                 Vector3 wishDir = wishMove.normalized;
                 float wishSpeed = MaxSpeedOnGround * speedModifier;
                 if (IsCrouching) wishSpeed *= MaxSpeedCrouchedRatio;
 
-                // Reorient along slope
                 if (wishDir.sqrMagnitude > 0f)
                     wishDir = GetDirectionReorientedOnSlope(wishDir, m_GroundNormal);
 
-                // Accelerate towards wish
                 horizVel = Accelerate(horizVel, wishDir, wishSpeed, GroundAcceleration);
 
-                // Jump: preserve horizontal speed (bunnyhop feel)
                 bool wantJump = AutoBunnyHop ? m_InputHandler.GetJumpInputHeld()
                              : m_InputHandler.GetJumpInputDown();
 
@@ -305,11 +298,9 @@ namespace Unity.FPS.Gameplay
                 }
                 else
                 {
-                    // Stick to ground slightly
                     verticalVel = Mathf.Min(verticalVel, 0f);
                 }
 
-                // Footsteps
                 float chosenFootstepSfxFrequency = isSprinting ? FootstepSfxFrequencyWhileSprinting : FootstepSfxFrequency;
                 if (m_FootstepDistanceCounter >= 1f / chosenFootstepSfxFrequency)
                 {
@@ -320,31 +311,24 @@ namespace Unity.FPS.Gameplay
             }
             else
             {
-                // Gravity
                 verticalVel -= GravityDownForce * Time.deltaTime;
 
-                // Air movement
                 Vector3 wishDir = wishMove.normalized;
                 float wishSpeed = MaxSpeedInAir * speedModifier;
 
                 if (wishDir.sqrMagnitude > 0f)
                 {
                     horizVel = AirAccelerateFunc(horizVel, wishDir, wishSpeed, AirAcceleration);
-
-                    // Optional air control (turning in air)
                     horizVel = ApplyAirControl(horizVel, wishDir, wishSpeed, AirControl);
                 }
             }
 
-            // Recompose velocity
             CharacterVelocity = horizVel + Vector3.up * verticalVel;
 
-            // Move controller
             Vector3 capsuleBottomBeforeMove = GetCapsuleBottomHemisphere();
             Vector3 capsuleTopBeforeMove = GetCapsuleTopHemisphere(m_Controller.height);
             m_Controller.Move(CharacterVelocity * Time.deltaTime);
 
-            // Collision slide
             m_LatestImpactSpeed = Vector3.zero;
             if (Physics.CapsuleCast(capsuleBottomBeforeMove, capsuleTopBeforeMove, m_Controller.radius,
                 CharacterVelocity.normalized, out RaycastHit hit, CharacterVelocity.magnitude * Time.deltaTime, -1,
@@ -354,8 +338,6 @@ namespace Unity.FPS.Gameplay
                 CharacterVelocity = Vector3.ProjectOnPlane(CharacterVelocity, hit.normal);
             }
         }
-
-        // --- Quake helpers ---
 
         Vector3 ApplyGroundFriction(Vector3 horizVel)
         {
@@ -394,7 +376,6 @@ namespace Unity.FPS.Gameplay
             float addSpeed = wishSpeed - currentSpeedInWishDir;
             if (addSpeed <= 0f) return current;
 
-            // Q3-ish: accel scales with wishSpeed
             float accelSpeed = accel * wishSpeed * Time.deltaTime;
             if (accelSpeed > addSpeed) accelSpeed = addSpeed;
 
@@ -408,17 +389,13 @@ namespace Unity.FPS.Gameplay
             if (speed < 0.0001f) return current;
 
             float dot = Vector3.Dot(current.normalized, wishDir);
-            // Only if trying to turn (dot > 0 gives "forward" air control feeling)
             if (dot > 0f)
             {
-                // steer towards wishDir
                 Vector3 perp = (wishDir - current.normalized * dot).normalized;
                 current += perp * (airControl * dot * speed * Time.deltaTime);
             }
             return current;
         }
-
-        // --- Utility & stance (mostly unchanged) ---
 
         bool IsNormalUnderSlopeLimit(Vector3 normal)
         {

@@ -18,20 +18,45 @@ namespace Unity.FPS.UI
 
         void Start()
         {
-            m_PlayerWeaponsManager = FindFirstObjectByType<PlayerWeaponsManager>();
-            DebugUtility.HandleErrorIfNullFindObject<PlayerWeaponsManager, WeaponHUDManager>(m_PlayerWeaponsManager,
-                this);
+            // 🔹 Si no hay PlayerWeaponsManager asignado manualmente, intentamos buscar uno (solo modo singleplayer/test)
+            if (m_PlayerWeaponsManager == null)
+            {
+                m_PlayerWeaponsManager = FindFirstObjectByType<PlayerWeaponsManager>();
+                if (m_PlayerWeaponsManager != null)
+                {
+                    HookEvents();
+                    InitializeWithActiveWeapon();
+                }
+            }
+        }
 
+        // 🔹 Nuevo método para asignar el PlayerWeaponsManager del jugador local
+        public void SetPlayerWeaponsManager(PlayerWeaponsManager pwm)
+        {
+            m_PlayerWeaponsManager = pwm;
+
+            if (m_PlayerWeaponsManager == null)
+                return;
+
+            HookEvents();
+            InitializeWithActiveWeapon();
+        }
+
+        void HookEvents()
+        {
+            m_PlayerWeaponsManager.OnAddedWeapon += AddWeapon;
+            m_PlayerWeaponsManager.OnRemovedWeapon += RemoveWeapon;
+            m_PlayerWeaponsManager.OnSwitchedToWeapon += ChangeWeapon;
+        }
+
+        void InitializeWithActiveWeapon()
+        {
             WeaponController activeWeapon = m_PlayerWeaponsManager.GetActiveWeapon();
             if (activeWeapon)
             {
                 AddWeapon(activeWeapon, m_PlayerWeaponsManager.ActiveWeaponIndex);
                 ChangeWeapon(activeWeapon);
             }
-
-            m_PlayerWeaponsManager.OnAddedWeapon += AddWeapon;
-            m_PlayerWeaponsManager.OnRemovedWeapon += RemoveWeapon;
-            m_PlayerWeaponsManager.OnSwitchedToWeapon += ChangeWeapon;
         }
 
         void AddWeapon(WeaponController newWeapon, int weaponIndex)
@@ -42,7 +67,6 @@ namespace Unity.FPS.UI
                 ammoCounterInstance.gameObject);
 
             newAmmoCounter.Initialize(newWeapon, weaponIndex);
-
             m_AmmoCounters.Add(newAmmoCounter);
         }
 
