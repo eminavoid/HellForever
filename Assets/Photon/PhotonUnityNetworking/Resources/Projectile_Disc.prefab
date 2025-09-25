@@ -15,8 +15,9 @@ GameObject:
   - component: {fileID: 1203337828444365110}
   - component: {fileID: 2223418409092269418}
   - component: {fileID: 6841512634174719543}
-  - component: {fileID: -2162822568923512428}
-  - component: {fileID: -4629965235334145909}
+  - component: {fileID: 4193776619780333394}
+  - component: {fileID: -9033522615705690864}
+  - component: {fileID: -7575739610927789015}
   m_Layer: 0
   m_Name: Projectile_Disc
   m_TagString: Untagged
@@ -208,7 +209,23 @@ MonoBehaviour:
   Color:
     Min: {r: 0, g: 2, b: 0.08890152, a: 1}
     Max: {r: 0, g: 1.9999998, b: 0.32460728, a: 1}
---- !u!114 &-2162822568923512428
+--- !u!114 &4193776619780333394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 106790115311484953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowLayerWeightsInspector: 1
+  ShowParameterInspector: 1
+  m_SynchronizeParameters: []
+  m_SynchronizeLayers: []
+--- !u!114 &-9033522615705690864
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -230,7 +247,7 @@ MonoBehaviour:
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &-4629965235334145909
+--- !u!114 &-7575739610927789015
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
