@@ -581,6 +581,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxHealth: 100
+  CurrentHealth: 100
+  Invincible: 0
   CriticalHealthRatio: 0.3
 --- !u!114 &5013943744098121684
 MonoBehaviour:
