@@ -3,6 +3,7 @@ using Unity.FPS.Game;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
+using Photon.Pun;
 
 namespace Unity.FPS.AI
 {
@@ -202,6 +203,9 @@ namespace Unity.FPS.AI
 
         void Update()
         {
+            if(!PhotonNetwork.IsMasterClient)
+                return;
+
             EnsureIsWithinLevelBounds();
 
             DetectionModule.HandleTargetDetection(m_Actor, m_SelfColliders);
@@ -359,6 +363,8 @@ namespace Unity.FPS.AI
 
         void OnDie()
         {
+            if (!PhotonNetwork.IsMasterClient) return;
+
             // spawn a particle system when dying
             var vfx = Instantiate(DeathVfx, DeathVfxSpawnPoint.position, Quaternion.identity);
             Destroy(vfx, 5f);

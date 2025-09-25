@@ -30,11 +30,6 @@ namespace Unity.FPS.Game
             WavesCreation();
         }
 
-        private void Start()
-        {
-            
-        }
-
         // Update is called once per frame
         void Update()
         {
@@ -84,6 +79,7 @@ namespace Unity.FPS.Game
                 foreach (GameObject obj in wave)
                 {
                     spawners[UnityEngine.Random.Range(0, spawners.Count)].SpawnEnemyOnRadius(obj);
+
                 }
 
                 spawnQueue.Desacolar();

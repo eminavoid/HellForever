@@ -277,7 +277,7 @@ namespace Unity.FPS.Game
                 m_CurrentAmmo = Mathf.Clamp(m_CurrentAmmo, 0, MaxAmmo);
                 IsCooling = true;
 
-                Debug.Log($"[Reload] +{(m_CurrentAmmo - before):F2} | baseRate={AmmoReloadRate:F2}/s effRate={effectiveRate:F2}/s mul={reloadMul:F2} | baseDelay={AmmoReloadDelay:F2}s effDelay={effectiveDelay:F2}s");
+                //Debug.Log($"[Reload] +{(m_CurrentAmmo - before):F2} | baseRate={AmmoReloadRate:F2}/s effRate={effectiveRate:F2}/s mul={reloadMul:F2} | baseDelay={AmmoReloadDelay:F2}s effDelay={effectiveDelay:F2}s");
 
             }
             else

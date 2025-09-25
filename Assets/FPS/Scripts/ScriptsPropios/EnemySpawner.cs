@@ -1,6 +1,9 @@
+using Photon.Pun;
 using System;
+using System.Collections;
 using Unity.FPS.Game;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Unity.FPS.ours
 {
@@ -30,16 +33,25 @@ namespace Unity.FPS.ours
                 
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
         public void SpawnEnemyOnRadius(GameObject enemy)
         {
-            Debug.Log("esta haciendo spawn");
-            Instantiate(enemy.gameObject, new Vector3(gameObject.transform.position.x + UnityEngine.Random.Range(-1*radius, radius), gameObject.transform.position.y , gameObject.transform.position.z + UnityEngine.Random.Range(-1 * radius, radius)), transform.rotation);
+            WaitTSeconds(3f, enemy);
+            //Debug.Log("esta haciendo spawn " + enemy.gameObject.name);
+            //Instantiate(enemy.gameObject, new Vector3(gameObject.transform.position.x + UnityEngine.Random.Range(-1*radius, radius), gameObject.transform.position.y , gameObject.transform.position.z + UnityEngine.Random.Range(-1 * radius, radius)), transform.rotation);
+
+        }
+        IEnumerator WaitTSeconds(float seconds, GameObject enemy)
+        {
+            yield return new WaitForSeconds(seconds);
+
+            if (!PhotonNetwork.IsMasterClient) yield break;
+
+            var pos = new Vector3(
+                transform.position.x + Random.Range(-1 * radius, radius),
+                transform.position.y,
+                transform.position.z + Random.Range(-1 * radius, radius));
+            Debug.Log("esta haciendo spawn " + enemy.gameObject.name);
+            PhotonNetwork.Instantiate(enemy.name, transform.position, transform.rotation);
         }
     }
 }
