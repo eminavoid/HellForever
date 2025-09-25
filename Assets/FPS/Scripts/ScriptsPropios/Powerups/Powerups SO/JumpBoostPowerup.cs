@@ -2,21 +2,21 @@
 
 namespace Unity.FPS.Ours
 {
-    [CreateAssetMenu(menuName = "Powerups/Jump Boost")]
+    [CreateAssetMenu(menuName = "Powerups/Jump Boost Powerup")]
     public class JumpBoostPowerup : PowerupBase
     {
-        [Range(1f, 3f)] public float JumpHeightMultiplierValue = 1.5f;
+        public float JumpMultiplier = 1.5f;
 
-        float _prev;
-        public override void Apply()
+        public override void Apply(PlayerGameplayModifiers target)
         {
-            _prev = GameplayModifiers.I != null ? GameplayModifiers.I.JumpHeightMultiplier : 1f;
-            if (GameplayModifiers.I) GameplayModifiers.I.JumpHeightMultiplier = JumpHeightMultiplierValue;
+            if (target == null) return;
+            target.JumpHeightMultiplier *= JumpMultiplier;
         }
 
-        public override void Revert()
+        public override void Remove(PlayerGameplayModifiers target)
         {
-            if (GameplayModifiers.I) GameplayModifiers.I.JumpHeightMultiplier = _prev;
+            if (target == null) return;
+            target.JumpHeightMultiplier /= JumpMultiplier;
         }
     }
 }

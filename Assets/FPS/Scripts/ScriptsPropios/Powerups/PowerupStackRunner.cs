@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using Unity.FPS.Game;
-using Unity.FPS.Ours;
 using UnityEngine;
 
 namespace Unity.FPS.Ours
@@ -8,64 +7,53 @@ namespace Unity.FPS.Ours
     [DisallowMultipleComponent]
     public class PowerupStackRunner : MonoBehaviour
     {
-        readonly GenericLinkedStack<IQueueTask> _stack = new GenericLinkedStack<IQueueTask>();
+        private readonly GenericLinkedStack<IQueueTask> _stack = new GenericLinkedStack<IQueueTask>();
 
-        IQueueTask _currentTask;
-        Coroutine _currentRoutine;
-        bool _running;
+        private IQueueTask _current;
+        private Coroutine _loop;
+        private bool _running;
 
         public void Push(IQueueTask task)
         {
-            // Pause if running
-            if (_running && _currentTask != null)
+            // apilar la actual si estaba corriendo
+            if (_running && _current != null)
             {
-                if (_currentTask is IPausableTask pausable)
-                    pausable.Pause();
-
-                if (_currentRoutine != null)
-                {
-                    StopCoroutine(_currentRoutine);
-                    _currentRoutine = null;
-                }
-
-                _stack.Push(_currentTask);
-                _currentTask = null;
+                if (_current is IPausableTask p) p.Pause();
+                if (_loop != null) StopCoroutine(_loop);
+                _stack.Push(_current);
+                _current = null;
                 _running = false;
             }
 
-            // New task 
             _stack.Push(task);
 
-            // (Re)start loop
             if (!_running)
-                _currentRoutine = StartCoroutine(RunLoop());
+                _loop = StartCoroutine(RunLoop());
         }
 
-        IEnumerator RunLoop()
+        private IEnumerator RunLoop()
         {
             _running = true;
 
             while (_stack.TryPop(out var next))
             {
-                _currentTask = next;
+                _current = next;
                 yield return next.Run(gameObject);
-                _currentTask = null;
+                _current = null;
             }
 
             _running = false;
-            _currentRoutine = null;
+            _loop = null;
         }
 
-        public void ClearPending()
+        public void ClearAll()
         {
             _stack.Clear();
-            if (_currentTask is IPausableTask pausable)
-                pausable.Pause();
-            if (_currentRoutine != null) StopCoroutine(_currentRoutine);
-            _currentTask = null;
-            _currentRoutine = null;
+            if (_current is IPausableTask p) p.Pause();
+            if (_loop != null) StopCoroutine(_loop);
+            _current = null;
+            _loop = null;
             _running = false;
         }
     }
-
 }

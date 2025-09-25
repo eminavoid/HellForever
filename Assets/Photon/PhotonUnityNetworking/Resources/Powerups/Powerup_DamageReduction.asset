@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87d08d62db4ea9c4ea43249ec13802e1, type: 3}
-  m_Name: Attack Speed Powerup
+  m_Script: {fileID: 11500000, guid: e84bf8daa7d1c934b91688b0d17eb014, type: 3}
+  m_Name: Powerup_DamageReduction
   m_EditorClassIdentifier: 
   Duration: 10
-  Multiplier: 2
+  DamageTakenMultiplierValue: 0.25

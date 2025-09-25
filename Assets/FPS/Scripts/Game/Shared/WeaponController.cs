@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Photon.Pun;
+using System;
 using System.Collections.Generic;
 using Unity.FPS.Ours;
 using UnityEngine;
@@ -142,7 +143,16 @@ namespace Unity.FPS.Game
         public float LastChargeTriggerTimestamp { get; private set; }
         Vector3 m_LastMuzzlePosition;
 
-        public GameObject Owner { get; set; }
+        GameObject m_Owner;
+        public GameObject Owner
+        {
+            get => m_Owner;
+            set
+            {
+                m_Owner = value;
+                m_OwnerMods = m_Owner ? m_Owner.GetComponent<PlayerGameplayModifiers>() : null;
+            }
+        }
         public GameObject SourcePrefab { get; set; }
         public bool IsCharging { get; private set; }
         public float CurrentAmmoRatio { get; private set; }
@@ -150,6 +160,8 @@ namespace Unity.FPS.Game
         public bool IsCooling { get; private set; }
         public float CurrentCharge { get; private set; }
         public Vector3 MuzzleWorldVelocity { get; private set; }
+
+        PlayerGameplayModifiers m_OwnerMods;
 
         public float CurrentAmmo => m_CurrentAmmo;  // read-only view
         public void SetAmmo(float amount)           // write ammo safely
@@ -264,7 +276,7 @@ namespace Unity.FPS.Game
 
         void UpdateAmmo()
         {
-            float reloadMul = OwnerIsPlayer() && GameplayModifiers.I ? GameplayModifiers.I.ReloadSpeedMultiplier : 1f;
+            float reloadMul = (OwnerIsPlayer() && m_OwnerMods != null) ? m_OwnerMods.ReloadSpeedMultiplier : 1f;
 
             float effectiveDelay = AmmoReloadDelay / Mathf.Max(0.01f, reloadMul);
 
@@ -407,7 +419,7 @@ namespace Unity.FPS.Game
 
         bool TryShoot()
         {
-            float atkMul = OwnerIsPlayer() && GameplayModifiers.I ? GameplayModifiers.I.AttackSpeedMultiplier : 1f;
+            float atkMul = (OwnerIsPlayer() && m_OwnerMods != null) ? m_OwnerMods.AttackSpeedMultiplier : 1f;
 
             if (m_CurrentAmmo >= 1f && m_LastTimeShot + (DelayBetweenShots / Mathf.Max(0.01f, atkMul)) < Time.time)
             {
@@ -424,7 +436,8 @@ namespace Unity.FPS.Game
 
         bool TryBeginCharge()
         {
-            float atkMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.AttackSpeedMultiplier : 1f;
+            float atkMul = (OwnerIsPlayer() && m_OwnerMods != null) ? m_OwnerMods.AttackSpeedMultiplier : 1f;
+
             if (!IsCharging
                 && m_CurrentAmmo >= AmmoUsedOnStartCharge
                 && Mathf.FloorToInt((m_CurrentAmmo - AmmoUsedOnStartCharge) * BulletsPerShot) > 0
@@ -462,34 +475,45 @@ namespace Unity.FPS.Game
                 ? Mathf.CeilToInt(CurrentCharge * BulletsPerShot)
                 : BulletsPerShot;
 
-            // spawn all bullets with random direction
             for (int i = 0; i < bulletsPerShotFinal; i++)
             {
                 Vector3 shotDirection = GetShotDirectionWithinSpread(WeaponMuzzle);
-                ProjectileBase newProjectile = Instantiate(ProjectilePrefab, WeaponMuzzle.position,
-                    Quaternion.LookRotation(shotDirection));
 
-                float weapMul = OwnerIsPlayer() && GameplayModifiers.I ? GameplayModifiers.I.WeaponDamageMultiplier : 1f;
-
-                if (newProjectile.TryGetComponent<IHasDamageMultiplier>(out var dmgConsumer))
+                object[] instantiationData = new object[]
                 {
-                    dmgConsumer.SetDamageMultiplier(weapMul);
-                    Debug.Log($"[Weapon] pass WeaponDamageMul={weapMul} to {newProjectile.name}");
-                }
+                    shotDirection.x, shotDirection.y, shotDirection.z
+                };
 
-                newProjectile.Shoot(this);
+                GameObject go = PhotonNetwork.Instantiate(
+                    ProjectilePrefab.name,
+                    WeaponMuzzle.position,
+                    Quaternion.LookRotation(shotDirection),
+                    0,
+                    instantiationData
+                );
+
+                var newProjectile = go.GetComponent<ProjectileBase>();
+                if (newProjectile != null)
+                {
+                    newProjectile.SetDirection(shotDirection);
+
+                    var mods = Owner ? Owner.GetComponent<Unity.FPS.Ours.PlayerGameplayModifiers>() : null;
+                    float weapMul = (OwnerIsPlayer() && mods) ? mods.WeaponDamageMultiplier : 1f;
+
+                    if (newProjectile.TryGetComponent<IHasDamageMultiplier>(out var dmgConsumer))
+                        dmgConsumer.SetDamageMultiplier(weapMul);
+
+                    newProjectile.Shoot(this);
+                }
             }
 
-            // muzzle flash
             if (MuzzleFlashPrefab != null)
             {
-                GameObject muzzleFlashInstance = Instantiate(MuzzleFlashPrefab, WeaponMuzzle.position,
-                    WeaponMuzzle.rotation, WeaponMuzzle.transform);
-                // Unparent the muzzleFlashInstance
+                GameObject muzzleFlashInstance = Instantiate(
+                    MuzzleFlashPrefab, WeaponMuzzle.position, WeaponMuzzle.rotation, WeaponMuzzle.transform);
+
                 if (UnparentMuzzleFlash)
-                {
                     muzzleFlashInstance.transform.SetParent(null);
-                }
 
                 Destroy(muzzleFlashInstance, 2f);
             }
@@ -502,17 +526,11 @@ namespace Unity.FPS.Game
 
             m_LastTimeShot = Time.time;
 
-            // play shoot SFX
             if (ShootSfx && !UseContinuousShootSound)
-            {
                 m_ShootAudioSource.PlayOneShot(ShootSfx);
-            }
 
-            // Trigger attack animation if there is any
             if (WeaponAnimator)
-            {
                 WeaponAnimator.SetTrigger(k_AnimAttackParameter);
-            }
 
             OnShoot?.Invoke();
             OnShootProcessed?.Invoke();

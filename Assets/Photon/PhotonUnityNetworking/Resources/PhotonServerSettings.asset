@@ -42,6 +42,13 @@ MonoBehaviour:
   - RPC_Heal
   - RPC_Kill
   - RPC_TakeDamage
+  - RPC_RequestDamage
+  - RPC_GameOverLose
+  - RPC_PlayerDied
+  - RPC_Respawn
+  - RPC_RespawnFull
+  - RPC_ApplyPowerup
+  - RPC_RequestPickup
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

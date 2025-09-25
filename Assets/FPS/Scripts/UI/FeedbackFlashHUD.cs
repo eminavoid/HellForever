@@ -52,7 +52,7 @@ namespace Unity.FPS.UI
         void Start()
         {
             // Buscar al jugador en escena
-            PlayerCharacterController playerCharacterController = FindObjectOfType<PlayerCharacterController>();
+            PlayerCharacterController playerCharacterController = FindFirstObjectByType<PlayerCharacterController>();
             DebugUtility.HandleErrorIfNullFindObject<PlayerCharacterController, FeedbackFlashHUD>(
                 playerCharacterController, this);
 
@@ -66,7 +66,7 @@ namespace Unity.FPS.UI
                 m_PlayerHealth.OnHealed += OnHealed;
             }
 
-            m_GameFlowManager = FindObjectOfType<GameFlowManager>();
+            m_GameFlowManager = FindFirstObjectByType<GameFlowManager>();
             DebugUtility.HandleErrorIfNullFindObject<GameFlowManager, FeedbackFlashHUD>(m_GameFlowManager, this);
         }
 

@@ -1,5 +1,6 @@
 ﻿using Unity.FPS.Game;
 using UnityEngine;
+using Photon.Pun;
 
 namespace Unity.FPS.AI
 {
@@ -61,15 +62,15 @@ namespace Unity.FPS.AI
 
         void Update()
         {
+            if (PhotonNetwork.IsConnected && !PhotonNetwork.IsMasterClient)
+                return;
+
             UpdateAiStateTransitions();
             UpdateCurrentAiState();
 
             float moveSpeed = m_EnemyController.NavMeshAgent.velocity.magnitude;
-
-            // Update animator speed parameter
             Animator.SetFloat(k_AnimMoveSpeedParameter, moveSpeed);
 
-            // changing the pitch of the movement sound depending on the movement speed
             m_AudioSource.pitch = Mathf.Lerp(PitchDistortionMovementSpeed.Min, PitchDistortionMovementSpeed.Max,
                 moveSpeed / m_EnemyController.NavMeshAgent.speed);
         }

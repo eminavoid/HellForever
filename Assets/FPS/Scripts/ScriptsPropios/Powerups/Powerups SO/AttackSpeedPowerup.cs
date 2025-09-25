@@ -2,37 +2,21 @@
 
 namespace Unity.FPS.Ours
 {
-    [CreateAssetMenu(menuName = "Powerups/Attack Speed")]
+    [CreateAssetMenu(menuName = "Powerups/Attack Speed Powerup")]
     public class AttackSpeedPowerup : PowerupBase
     {
-        [Range(1f, 5f)] public float Multiplier = 1.5f; // one knob for both fire & reload
+        public float SpeedMultiplier = 1.5f;
 
-        float _prevAtk, _prevReload;
-
-        public override void Apply()
+        public override void Apply(PlayerGameplayModifiers target)
         {
-            _prevAtk = GameplayModifiers.I ? GameplayModifiers.I.AttackSpeedMultiplier : 1f;
-            _prevReload = GameplayModifiers.I ? GameplayModifiers.I.ReloadSpeedMultiplier : 1f;
-
-            if (GameplayModifiers.I)
-            {
-                GameplayModifiers.I.AttackSpeedMultiplier = Multiplier;
-                GameplayModifiers.I.ReloadSpeedMultiplier = Multiplier;
-            }
-
-            Debug.Log($"[PU AttackSpeed] APPLY atk:{_prevAtk}→{Multiplier} reload:{_prevReload}→{Multiplier}");
+            if (target == null) return;
+            target.AttackSpeedMultiplier *= SpeedMultiplier;
         }
 
-        public override void Revert()
+        public override void Remove(PlayerGameplayModifiers target)
         {
-            if (GameplayModifiers.I)
-            {
-                GameplayModifiers.I.AttackSpeedMultiplier = _prevAtk;
-                GameplayModifiers.I.ReloadSpeedMultiplier = _prevReload;
-            }
-
-            Debug.Log($"[PU AttackSpeed] REVERT atk→{_prevAtk} reload→{_prevReload}");
+            if (target == null) return;
+            target.AttackSpeedMultiplier /= SpeedMultiplier;
         }
     }
-
 }

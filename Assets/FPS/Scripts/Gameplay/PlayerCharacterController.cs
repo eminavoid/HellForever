@@ -116,6 +116,7 @@ namespace Unity.FPS.Gameplay
         public bool AutoBunnyHop = true;
 
         public UnityAction<bool> OnStanceChanged;
+        PlayerGameplayModifiers m_Mods;
 
         public Vector3 CharacterVelocity { get; set; }
         public bool IsGrounded { get; private set; }
@@ -170,6 +171,7 @@ namespace Unity.FPS.Gameplay
             m_WeaponsManager = GetComponent<PlayerWeaponsManager>();
             m_Health = GetComponent<Health>();
             m_Actor = GetComponent<Actor>();
+            m_Mods = GetComponent<PlayerGameplayModifiers>();
 
             m_Controller.enableOverlapRecovery = true;
             m_Health.OnDie += OnDie;
@@ -190,16 +192,22 @@ namespace Unity.FPS.Gameplay
 
             GroundCheck();
 
-            // Landing SFX + fall damage
             if (IsGrounded && !wasGrounded)
             {
                 float fallSpeed = -Mathf.Min(CharacterVelocity.y, m_LatestImpactSpeed.y);
                 float fallSpeedRatio = (fallSpeed - MinSpeedForFallDamage) / (MaxSpeedForFallDamage - MinSpeedForFallDamage);
+
                 if (RecievesFallDamage && fallSpeedRatio > 0f)
                 {
-                    float dmgFromFall = Mathf.Lerp(FallDamageAtMinSpeed, FallDamageAtMaxSpeed, fallSpeedRatio);
-                    float dmgMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.DamageTakenMultiplier : 1f;
-                    m_Health.TakeDamage(dmgFromFall * dmgMul, null);
+                    if (!Photon.Pun.PhotonNetwork.IsConnected || photonView.IsMine)
+                    {
+                        float dmgFromFall = Mathf.Lerp(FallDamageAtMinSpeed, FallDamageAtMaxSpeed, fallSpeedRatio);
+
+                        float dmgMul = (m_Mods != null) ? m_Mods.DamageTakenMultiplier : 1f;
+
+                        m_Health.TakeDamage(dmgFromFall * dmgMul, gameObject);
+                    }
+
                     AudioSource.PlayOneShot(FallDamageSfx);
                 }
                 else
@@ -207,6 +215,7 @@ namespace Unity.FPS.Gameplay
                     AudioSource.PlayOneShot(LandSfx);
                 }
             }
+
 
             if (m_InputHandler.GetCrouchInputDown())
                 SetCrouchingState(!IsCrouching, false);
@@ -288,7 +297,8 @@ namespace Unity.FPS.Gameplay
 
                 if (wantJump)
                 {
-                    float jMul = (GameplayModifiers.I != null) ? GameplayModifiers.I.JumpHeightMultiplier : 1f;
+                    var mods = GetComponent<Unity.FPS.Ours.PlayerGameplayModifiers>();
+                    float jMul = mods ? mods.JumpHeightMultiplier : 1f;
                     verticalVel = JumpForce * jMul;
                     AudioSource.PlayOneShot(JumpSfx);
                     m_LastTimeJumped = Time.time;

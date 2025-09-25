@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a9e1cd98832919c40872b6a6a921f920, type: 3}
-  m_Name: Jump Boost Powerup
+  m_Script: {fileID: 11500000, guid: 87d08d62db4ea9c4ea43249ec13802e1, type: 3}
+  m_Name: Powerup_AttackSpeed
   m_EditorClassIdentifier: 
   Duration: 10
-  JumpHeightMultiplierValue: 2
+  Multiplier: 2

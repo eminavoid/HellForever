@@ -2,21 +2,21 @@
 
 namespace Unity.FPS.Ours
 {
-    [CreateAssetMenu(menuName = "Powerups/Weapon Damage")]
+    [CreateAssetMenu(menuName = "Powerups/Weapon Damage Powerup")]
     public class WeaponDamagePowerup : PowerupBase
     {
-        [Range(1f, 5f)] public float WeaponDamageMultiplierValue = 2f;
+        public float DamageMultiplier = 1.5f;
 
-        float _prev;
-        public override void Apply()
+        public override void Apply(PlayerGameplayModifiers target)
         {
-            _prev = GameplayModifiers.I != null ? GameplayModifiers.I.WeaponDamageMultiplier : 1f;
-            if (GameplayModifiers.I) GameplayModifiers.I.WeaponDamageMultiplier = WeaponDamageMultiplierValue;
+            if (target == null) return;
+            target.WeaponDamageMultiplier *= DamageMultiplier;
         }
 
-        public override void Revert()
+        public override void Remove(PlayerGameplayModifiers target)
         {
-            if (GameplayModifiers.I) GameplayModifiers.I.WeaponDamageMultiplier = _prev;
+            if (target == null) return;
+            target.WeaponDamageMultiplier /= DamageMultiplier;
         }
     }
 }

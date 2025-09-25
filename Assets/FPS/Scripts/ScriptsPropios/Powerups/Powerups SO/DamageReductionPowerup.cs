@@ -2,21 +2,21 @@
 
 namespace Unity.FPS.Ours
 {
-    [CreateAssetMenu(menuName = "Powerups/Damage Reduction")]
+    [CreateAssetMenu(menuName = "Powerups/Damage Reduction Powerup")]
     public class DamageReductionPowerup : PowerupBase
     {
-        [Range(0.1f, 1f)] public float DamageTakenMultiplierValue = 0.5f; // 50% damage
+        [Range(0.1f, 1f)] public float ReductionMultiplier = 0.5f;
 
-        float _prev;
-        public override void Apply()
+        public override void Apply(PlayerGameplayModifiers target)
         {
-            _prev = GameplayModifiers.I != null ? GameplayModifiers.I.DamageTakenMultiplier : 1f;
-            if (GameplayModifiers.I) GameplayModifiers.I.DamageTakenMultiplier = DamageTakenMultiplierValue;
+            if (target == null) return;
+            target.DamageTakenMultiplier *= ReductionMultiplier;
         }
 
-        public override void Revert()
+        public override void Remove(PlayerGameplayModifiers target)
         {
-            if (GameplayModifiers.I) GameplayModifiers.I.DamageTakenMultiplier = _prev;
+            if (target == null) return;
+            target.DamageTakenMultiplier /= ReductionMultiplier;
         }
     }
 }

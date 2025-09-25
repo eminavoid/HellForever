@@ -4,29 +4,33 @@ using UnityEngine;
 
 namespace Unity.FPS.Ours
 {
+    /// Adaptador para que un PowerupBase se ejecute como tarea con duración
     public class PowerupTaskAdapter : IQueueTask, IPausableTask
     {
-        readonly PowerupBase _powerup;
+        private readonly PowerupBase _powerup;
+        private readonly PlayerGameplayModifiers _target;
 
-        float _remaining;     // time left
-        bool _applied;       // is effect currently applied?
-        bool _paused;        // set by Pause()
+        private float _remaining;
+        private bool _applied;
+        private bool _paused;
 
-        public PowerupTaskAdapter(PowerupBase powerup)
+        public PowerupTaskAdapter(PowerupBase powerup, PlayerGameplayModifiers target)
         {
+            // Instanciamos el SO para que sea propio de este jugador/toma
             _powerup = Object.Instantiate(powerup);
+            _target = target;
             _remaining = _powerup.Duration;
         }
 
-        public IEnumerator Run(GameObject target)
+        public IEnumerator Run(GameObject owner)
         {
             _paused = false;
 
             if (!_applied)
             {
-                _powerup.Init(target);
-                _powerup.Apply();
+                _powerup.Apply(_target);
                 _applied = true;
+                Debug.Log($"[PowerupTaskAdapter] Apply => {_powerup.name} a {owner.name}");
             }
 
             while (_remaining > 0f && !_paused)
@@ -39,8 +43,9 @@ namespace Unity.FPS.Ours
 
             if (_applied)
             {
-                _powerup.Revert();
+                _powerup.Remove(_target);
                 _applied = false;
+                Debug.Log($"[PowerupTaskAdapter] Remove => {_powerup.name} de {owner.name}");
             }
         }
 
@@ -48,12 +53,10 @@ namespace Unity.FPS.Ours
         {
             if (_applied)
             {
-                // stop affecting gameplay while paused
-                _powerup.Revert();
+                _powerup.Remove(_target);
                 _applied = false;
             }
             _paused = true;
         }
     }
-
 }

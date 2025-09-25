@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using Photon.Pun;
+using System.Collections;
+using System.Collections.Generic;
 using Unity.FPS.Game;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
-using Photon.Pun;
 
 namespace Unity.FPS.AI
 {
@@ -203,7 +204,7 @@ namespace Unity.FPS.AI
 
         void Update()
         {
-            if(!PhotonNetwork.IsMasterClient)
+            if (!PhotonNetwork.IsMasterClient)
                 return;
 
             EnsureIsWithinLevelBounds();
@@ -219,16 +220,15 @@ namespace Unity.FPS.AI
 
             m_WasDamagedThisFrame = false;
         }
-
         void EnsureIsWithinLevelBounds()
         {
-            // at every frame, this tests for conditions to kill the enemy
             if (transform.position.y < SelfDestructYHeight)
             {
-                Destroy(gameObject);
-                return;
+                if (PhotonNetwork.IsMasterClient)
+                    PhotonNetwork.Destroy(gameObject);
             }
         }
+
 
         void OnLostTarget()
         {
@@ -363,23 +363,33 @@ namespace Unity.FPS.AI
 
         void OnDie()
         {
-            if (!PhotonNetwork.IsMasterClient) return;
-
-            // spawn a particle system when dying
-            var vfx = Instantiate(DeathVfx, DeathVfxSpawnPoint.position, Quaternion.identity);
-            Destroy(vfx, 5f);
-
-            // tells the game flow manager to handle the enemy destuction
-            m_EnemyManager.UnregisterEnemy(this);
-
-            // loot an object
-            if (TryDropItem())
+            if (DeathVfx && DeathVfxSpawnPoint)
             {
-                Instantiate(LootPrefab[Random.Range(0,LootPrefab.Count)], transform.position, Quaternion.identity);
+                var vfx = Instantiate(DeathVfx, DeathVfxSpawnPoint.position, Quaternion.identity);
+                Destroy(vfx, 5f);
             }
 
-            // this will call the OnDestroy function
-            Destroy(gameObject, DeathDuration);
+            if (PhotonNetwork.IsMasterClient)
+            {
+                m_EnemyManager.UnregisterEnemy(this);
+
+                if (TryDropItem() && LootPrefab != null && LootPrefab.Count > 0)
+                {
+                    string lootName = LootPrefab[Random.Range(0, LootPrefab.Count)].name;
+                    PhotonNetwork.Instantiate(lootName, transform.position, Quaternion.identity);
+                }
+
+                if (DeathDuration > 0f)
+                    StartCoroutine(DestroyAfterDelay(DeathDuration));
+                else
+                    PhotonNetwork.Destroy(gameObject);
+            }
+        }
+        IEnumerator DestroyAfterDelay(float seconds)
+        {
+            yield return new WaitForSeconds(seconds);
+            if (this && PhotonNetwork.IsMasterClient)
+                PhotonNetwork.Destroy(gameObject);
         }
 
         void OnDrawGizmosSelected()

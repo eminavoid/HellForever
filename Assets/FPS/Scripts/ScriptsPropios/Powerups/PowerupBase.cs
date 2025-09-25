@@ -4,13 +4,13 @@ namespace Unity.FPS.Ours
 {
     public abstract class PowerupBase : ScriptableObject
     {
-        [Tooltip("Seconds the effect remains active")]
-        public float Duration = 10f;
+        [Tooltip("Duración en segundos del powerup")]
+        public float Duration = 8f;
 
-        protected GameObject _target;
-        public void Init(GameObject target) => _target = target;
+        /// Aplica el efecto sobre el jugador (target = sus modificadores)
+        public abstract void Apply(PlayerGameplayModifiers target);
 
-        public abstract void Apply();
-        public abstract void Revert();
+        /// Revierte el mismo efecto aplicado
+        public abstract void Remove(PlayerGameplayModifiers target);
     }
 }
