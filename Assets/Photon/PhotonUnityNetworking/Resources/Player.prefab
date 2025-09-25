@@ -475,6 +475,8 @@ GameObject:
   - component: {fileID: 1242822550783879681}
   - component: {fileID: 6687135760085304309}
   - component: {fileID: -7664765785574999774}
+  - component: {fileID: 3677371071118343282}
+  - component: {fileID: -2011570512238509748}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -977,6 +979,32 @@ MonoBehaviour:
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
+--- !u!114 &3677371071118343282
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7086814085738610056}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: beaf34e872792704381a8c6ccfb55c52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &-2011570512238509748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7086814085738610056}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64b469a49b178504b8d616c17897bcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deathUIName: DeathUI
+  respawnDelay: 5
 --- !u!1 &7475573754143545273
 GameObject:
   m_ObjectHideFlags: 0

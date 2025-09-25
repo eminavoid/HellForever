@@ -97,7 +97,12 @@ namespace Unity.FPS.Game
             }
         }
 
-        // 🔹 Sincronización de vida
+        public void Revive()
+        {
+            m_IsDead = false;
+        }
+
+        // 🔹 Sincronización de vida en red
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
         {
             if (stream.IsWriting)
