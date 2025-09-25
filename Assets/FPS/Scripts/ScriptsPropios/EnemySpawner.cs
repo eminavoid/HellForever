@@ -1,6 +1,4 @@
 using Photon.Pun;
-using System;
-using System.Collections;
 using Unity.FPS.Game;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -9,49 +7,41 @@ namespace Unity.FPS.ours
 {
     public class EnemySpawner : MonoBehaviour
     {
+        [SerializeField] float radius = 5f;
         WavesManager m_waveManager;
-        [SerializeField] float radius;
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
 
-        private void OnDrawGizmosSelected()
-        {
-            Gizmos.DrawWireSphere(gameObject.transform.position, radius);
-        }
-
-        void Start()
+        void Awake() //  registrar lo antes posible
         {
             m_waveManager = FindAnyObjectByType<WavesManager>();
-
-            if (m_waveManager != null) 
-            {
+            if (m_waveManager != null)
                 m_waveManager.registerSpawner(this);
-            } else
+            else
+                Debug.LogWarning("[EnemySpawner] No WavesManager found in scene.");
+        }
+
+        void OnDestroy()
+        {
+            if (m_waveManager != null)
+                m_waveManager.unregisterSpawner(this);
+        }
+
+        public void SpawnEnemyOnRadius(string enemyPrefabName)
+        {
+            if (!PhotonNetwork.InRoom || !PhotonNetwork.IsMasterClient)
             {
-                Debug.Log("Failed to find wave manager");
+                Debug.Log($"[EnemySpawner] Skip spawn. InRoom={PhotonNetwork.InRoom}, IsMaster={PhotonNetwork.IsMasterClient}");
+                return;
             }
 
-                
-        }
+            Vector3 pos = transform.position + new Vector3(
+                Random.Range(-radius, radius),
+                0f,
+                Random.Range(-radius, radius)
+            );
 
-        public void SpawnEnemyOnRadius(GameObject enemy)
-        {
-            WaitTSeconds(3f, enemy);
-            //Debug.Log("esta haciendo spawn " + enemy.gameObject.name);
-            //Instantiate(enemy.gameObject, new Vector3(gameObject.transform.position.x + UnityEngine.Random.Range(-1*radius, radius), gameObject.transform.position.y , gameObject.transform.position.z + UnityEngine.Random.Range(-1 * radius, radius)), transform.rotation);
-
-        }
-        IEnumerator WaitTSeconds(float seconds, GameObject enemy)
-        {
-            yield return new WaitForSeconds(seconds);
-
-            if (!PhotonNetwork.IsMasterClient) yield break;
-
-            var pos = new Vector3(
-                transform.position.x + Random.Range(-1 * radius, radius),
-                transform.position.y,
-                transform.position.z + Random.Range(-1 * radius, radius));
-            Debug.Log("esta haciendo spawn " + enemy.gameObject.name);
-            PhotonNetwork.Instantiate(enemy.name, transform.position, transform.rotation);
+            Debug.Log($"[EnemySpawner] Spawning '{enemyPrefabName}' at {pos}");
+            var go = PhotonNetwork.Instantiate(enemyPrefabName, pos, Quaternion.identity);
+            go.SetActive(true);
         }
     }
 }

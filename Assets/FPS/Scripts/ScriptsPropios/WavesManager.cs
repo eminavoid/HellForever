@@ -1,90 +1,107 @@
-using UnityEngine;
-using Unity.FPS.ours;
+using Photon.Pun;
 using System.Collections.Generic;
-using System.Linq;
-using System;
-
+using Unity.FPS.ours;
+using UnityEngine;
 
 namespace Unity.FPS.Game
 {
-    public class WavesManager : MonoBehaviour
+    public class WavesManager : MonoBehaviourPunCallbacks
     {
         [SerializeField] private int wavesCount = 5;
         [SerializeField] private int minEnemyCount = 1;
         [SerializeField] private int maxEnemyCount = 10;
-        private List<EnemySpawner> spawners;
-        [SerializeField] private List<GameObject> spawnObjects;
-        private QueueTDA<List<GameObject>> spawnQueue;
 
-        private bool firstWaveStart;
+        private readonly List<Unity.FPS.ours.EnemySpawner> spawners = new();
+        [SerializeField] private List<GameObject> spawnObjects;
+
+        private QueueTDA<List<GameObject>> spawnQueue;
 
         public int WavesCount { get { return wavesCount; } }
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+        public void registerSpawner(Unity.FPS.ours.EnemySpawner s)
+        {
+            if (!spawners.Contains(s)) spawners.Add(s);
+            Debug.Log($"[WavesManager] Spawner registrado. Total={spawners.Count}");
+        }
+
+        public void unregisterSpawner(Unity.FPS.ours.EnemySpawner s)
+        {
+            spawners.Remove(s);
+            Debug.Log($"[WavesManager] Spawner removido. Total={spawners.Count}");
+        }
+
         void Awake()
         {
-            spawners = new List<EnemySpawner>();
             spawnQueue = new QueueTDA<List<GameObject>>();
             spawnQueue.InicializarCola(wavesCount);
-            firstWaveStart = false;
-            WavesCreation();
+            CreateWaves();
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-            if (!firstWaveStart) 
-            {
-                WaveExecute();
-                firstWaveStart=true;
-            }
-        }
-
-        public void registerSpawner(EnemySpawner enemySpawner)
-        {
-            spawners.Add(enemySpawner);
-        }
-
-        public void unregisterSpawner(EnemySpawner enemySpawner)
-        {
-            spawners.Remove(enemySpawner);
-        }
-
-        public void WavesCreation()
+        void CreateWaves()
         {
             if (spawnQueue.ColaVacia())
             {
                 for (int i = 0; i < wavesCount; i++)
                 {
-                    int enemyQuantity = UnityEngine.Random.Range(minEnemyCount, maxEnemyCount);
-                    Debug.Log(spawnObjects.Count);
-                    List<GameObject> spawnObjectsList = new List<GameObject>();
-                    for (int j = 0; j < enemyQuantity; j++)
-                    {
-                        spawnObjectsList.Add(spawnObjects[UnityEngine.Random.Range(0,spawnObjects.Count)]);
-                    }
-                    spawnQueue.Acolar(spawnObjectsList);
+                    int count = Random.Range(minEnemyCount, maxEnemyCount + 1);
+                    var list = new List<GameObject>(count);
+                    for (int j = 0; j < count; j++)
+                        list.Add(spawnObjects[Random.Range(0, spawnObjects.Count)]);
+                    spawnQueue.Acolar(list);
                 }
+                Debug.Log($"[WavesManager] Creación de waves completa. Waves={wavesCount}");
             }
+        }
+
+        //  Este callback se dispara cuando realmente estás en la Room
+        public override void OnJoinedRoom()
+        {
+            Debug.Log("[WavesManager] OnJoinedRoom disparado.");
+            TryLaunchWave();
+        }
+
+        //  Si cambia el Master, el nuevo Master debe spawnear
+        public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)
+        {
+            if (PhotonNetwork.IsMasterClient)
+            {
+                Debug.Log("[WavesManager] Soy nuevo MasterClient, lanzo wave.");
+                TryLaunchWave();
+            }
+        }
+
+        private void TryLaunchWave()
+        {
+            if (!PhotonNetwork.IsMasterClient) return;
+            if (spawners.Count == 0)
+            {
+                Debug.LogWarning("[WavesManager] No hay spawners aún, no puedo lanzar wave.");
+                return;
+            }
+
+            WaveExecute();
         }
 
         public void WaveExecute()
         {
-            
-            if (!spawnQueue.ColaVacia() && spawners.Count != 0)
+            if (spawnQueue.ColaVacia())
             {
-                List<GameObject> wave = spawnQueue.Primero();
-                Debug.Log("lista de wave tiene: " + wave.Count);
-
-                foreach (GameObject obj in wave)
-                {
-                    spawners[UnityEngine.Random.Range(0, spawners.Count)].SpawnEnemyOnRadius(obj);
-
-                }
-
-                spawnQueue.Desacolar();
+                Debug.LogWarning("[WavesManager] No hay waves en la cola.");
+                return;
             }
+
+            var wave = spawnQueue.Primero();
+            Debug.Log($"[WavesManager] Ejecutando wave con {wave.Count} enemigos. Spawners={spawners.Count}");
+
+            foreach (GameObject obj in wave)
+            {
+                string prefabName = obj.name; // debe coincidir con prefab en Resources/
+                var spawner = spawners[Random.Range(0, spawners.Count)];
+                spawner.SpawnEnemyOnRadius(prefabName);
+            }
+
+            spawnQueue.Desacolar();
         }
     }
-
 }
