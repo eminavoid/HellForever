@@ -229,7 +229,7 @@ namespace Unity.FPS.Gameplay
         {
             IsDead = true;
             m_WeaponsManager.SwitchToWeaponIndex(-1, true);
-            EventManager.Broadcast(Events.PlayerDeathEvent);
+            //EventManager.Broadcast(Events.PlayerDeathEvent);
         }
 
         void GroundCheck()

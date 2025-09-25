@@ -78,10 +78,15 @@ public class PlayerNetworkLife : MonoBehaviourPun
     {
         transform.SetPositionAndRotation(pos, rot);
 
-        if (_health) _health.RespawnFull();
+        if (_health)
+        {
+            _health.CurrentHealth = _health.MaxHealth;
+            _health.Invincible = false;
+        }
 
         foreach (var r in _renderers) r.enabled = true;
         foreach (var c in _colliders) c.enabled = true;
+
         if (_cc) _cc.enabled = true;
         if (_weapons) _weapons.enabled = true;
         if (_controller) _controller.enabled = true;
