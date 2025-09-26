@@ -20,6 +20,9 @@ public class PlayButton : MonoBehaviour
 
             // ✅ Cambiar de escena SOLO para este jugador
             UnityEngine.SceneManagement.SceneManager.LoadScene(gameSceneName);
+
+            //PhotonNetwork.LoadLevel(1);
+            //PhotonNetwork.AutomaticallySyncScene = true;
         }
         else
         {
