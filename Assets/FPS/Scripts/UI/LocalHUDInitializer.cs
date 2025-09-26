@@ -3,6 +3,7 @@ using Photon.Pun;
 using Unity.FPS.Game;
 using Unity.FPS.Gameplay;
 
+
 namespace Unity.FPS.UI
 {
     public class LocalHUDInitializer : MonoBehaviour
@@ -13,7 +14,7 @@ namespace Unity.FPS.UI
         {
             if (isLinked) return;
 
-            foreach (var health in FindObjectsByType<Health>(FindObjectsSortMode.None))
+            foreach (var health in FindObjectsByType<Unity.FPS.Game.Health>(FindObjectsSortMode.None))
             {
                 // 👇 Chequeo extra: solo si tiene tag "Player"
                 if (health.CompareTag("Player") &&

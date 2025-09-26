@@ -80,6 +80,7 @@ public class PlayerNetworkLife : MonoBehaviourPun
 
         if (_health) _health.RespawnFull();
 
+        // re-enable componentes
         foreach (var r in _renderers) r.enabled = true;
         foreach (var c in _colliders) c.enabled = true;
         if (_cc) _cc.enabled = true;

@@ -1785,6 +1785,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -6607941316930102288, guid: 66d579771ab0ab94a92b3411ba179621,
+        type: 3}
+      propertyPath: sceneViewId
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 3391986289622131205, guid: 66d579771ab0ab94a92b3411ba179621,
         type: 3}
       propertyPath: sceneViewId
@@ -2314,6 +2319,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: atckspeed powerup
       objectReference: {fileID: 0}
+    - target: {fileID: 5232761149771351342, guid: b613d5a3c934db342972177aa9ea8852,
+        type: 3}
+      propertyPath: sceneViewId
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 5263248801841564266, guid: b613d5a3c934db342972177aa9ea8852,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2499,6 +2509,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6324936100355506428, guid: 75900bfe388fa0c4ab930ec9902bb811,
+        type: 3}
+      propertyPath: sceneViewId
+      value: 11
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6071,6 +6086,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -4969587517201007804, guid: a8d11cc28832ca048b4f770eaac2984b,
+        type: 3}
+      propertyPath: sceneViewId
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 5369644909939064627, guid: a8d11cc28832ca048b4f770eaac2984b,
         type: 3}
       propertyPath: m_Name
@@ -6139,6 +6159,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 358784006786230532, guid: 11fb8a83453c49548977a5c9f96d7108,
+        type: 3}
+      propertyPath: sceneViewId
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 1455777443498097802, guid: 11fb8a83453c49548977a5c9f96d7108,
         type: 3}
       propertyPath: m_Name
