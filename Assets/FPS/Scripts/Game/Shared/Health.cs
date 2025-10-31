@@ -215,6 +215,10 @@ namespace Unity.FPS.Game
 
             Invincible = false;
         }
+        public void Revive()
+        {
+            m_IsDead = false;
+        }
 
     }
 }
