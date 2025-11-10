@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Project.Pathfinding;
+using Unity.FPS.AI;
 
 namespace Project.AI
 {
+    [RequireComponent(typeof(EnemyController))]
     public class EnemyChaser : MonoBehaviour
     {
         [SerializeField] NavGraph graph;
@@ -61,6 +63,7 @@ namespace Project.AI
             if (timeUp || moved) RepathPreservandoProgreso();
             Follow();
         }
+
 
         void RepathPreservandoProgreso()
         {
@@ -166,6 +169,8 @@ namespace Project.AI
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, look, rotationSpeed * Time.deltaTime);
             }
         }
+
+
 
         void OnDrawGizmosSelected()
         {
