@@ -19,7 +19,6 @@ public class AllyContactDamage : MonoBehaviour
 
                 enemyHealth.TakeDamage(DamageAmount, DamageSource);
 
-                Debug.Log($"DAÑO APLICADO ({DamageAmount}) al padre de la HitBox: {enemyHealth.gameObject.name}");
             }
             else
             {
