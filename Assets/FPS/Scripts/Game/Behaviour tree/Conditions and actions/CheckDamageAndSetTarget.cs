@@ -18,11 +18,14 @@ public class CheckDamageAndSetTarget : Node
             if (_allyContext.LastAttacker != null)
             {
                 _allyContext.CurrentTarget = _allyContext.LastAttacker;
-                _allyContext.LastAttacker = null;    
 
-                return NodeState.Success;       
+                _allyContext.LastAttacker = null;
+
+
+                return NodeState.Success;
             }
         }
+
         return NodeState.Failure;
     }
 }
