@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Project.Pathfinding;
-using Unity.FPS.AI;
+using Unity.FPS.Game; // <-- añadido para usar Health
+
 
 namespace Project.AI
 {
-    [RequireComponent(typeof(EnemyController))]
+    // Añadimos el requerimiento para que el objeto tenga Health
+    [RequireComponent(typeof(Health))]
     public class EnemyChaser : MonoBehaviour
     {
         [SerializeField] NavGraph graph;
@@ -33,6 +35,11 @@ namespace Project.AI
         [SerializeField] bool drawPath = true;
         [SerializeField] Color pathColor = Color.green;
 
+        [Header("Daño / Vida")]
+        [SerializeField] bool destroyOnDeath = true;
+        [SerializeField] GameObject deathVfx;
+        [SerializeField] float deathVfxLifetime = 5f;
+
         List<Vector3> route;
         int index;
         float lastRepath;
@@ -40,21 +47,33 @@ namespace Project.AI
 
         CharacterController cc;
         Rigidbody rb;
+        Health health;
+        bool isDead;
 
         void Awake()
         {
             cc = GetComponent<CharacterController>();
             rb = GetComponent<Rigidbody>();
+            health = GetComponent<Health>();
         }
 
         void Start()
         {
             if (!graph) graph = FindObjectOfType<NavGraph>();
+
+            // Suscribirse a eventos de vida
+            if (health != null)
+            {
+                health.OnDie += HandleDeath;
+                health.OnDamaged += HandleDamaged;
+            }
+
             ForceRepath();
         }
 
         void Update()
         {
+            if (isDead) return;
             if (!graph || !player) return;
 
             bool timeUp = Time.time - lastRepath >= repathInterval;
@@ -64,6 +83,49 @@ namespace Project.AI
             Follow();
         }
 
+        // Método público para aplicar daño externo (por disparos, explosiones, etc.)
+        public void ApplyDamage(float amount, GameObject damageSource = null)
+        {
+            if (isDead || health == null) return;
+            health.TakeDamage(amount, damageSource);
+        }
+
+        // Método opcional para matar directamente (instakill)
+        public void Kill()
+        {
+            if (health == null) return;
+            health.Kill(); // disparará HandleDeath vía evento
+        }
+
+        void HandleDamaged(float dmg, GameObject source)
+        {
+            if (debugLogs)
+                Debug.Log($"[EnemyChaser] Recibió daño={dmg} de {(source ? source.name : "desconocido")} | HP={health.CurrentHealth}");
+        }
+
+        void HandleDeath()
+        {
+            if (isDead) return;
+            isDead = true;
+
+            if (debugLogs)
+                Debug.Log($"[EnemyChaser] Muerto. Destruir={destroyOnDeath}");
+
+            // VFX muerte
+            if (deathVfx)
+            {
+                var vfx = Instantiate(deathVfx, transform.position, Quaternion.identity);
+                if (deathVfxLifetime > 0f) Destroy(vfx, deathVfxLifetime);
+            }
+
+            // Notificar evento global (si usas sistema de eventos del proyecto)
+            Events.EnemyKillEvent.Enemy = gameObject;
+            Events.EnemyKillEvent.RemainingEnemyCount = 0; // Ajusta si llevas conteo real
+            EventManager.Broadcast(Events.EnemyKillEvent);
+
+            if (destroyOnDeath)
+                Destroy(gameObject);
+        }
 
         void RepathPreservandoProgreso()
         {
