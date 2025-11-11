@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 
-// Hereda de la clase base abstracta 'Node'
 public class Sequence : Node
 {
     protected List<Node> m_nodes = new List<Node>();

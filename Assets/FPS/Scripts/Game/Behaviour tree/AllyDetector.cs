@@ -10,11 +10,11 @@ public class AllyDetector : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+
         if (other.CompareTag(targetTag))
         {
             TargetDetected = true;
             DetectedObject = other.transform;
-            Debug.Log(gameObject.name + " detectó a: " + other.name);
         }
     }
 
@@ -24,7 +24,6 @@ public class AllyDetector : MonoBehaviour
         {
             TargetDetected = false;
             DetectedObject = null;
-            Debug.Log(gameObject.name + " perdió a: " + other.name);
         }
     }
 }
