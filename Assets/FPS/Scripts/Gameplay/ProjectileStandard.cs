@@ -233,8 +233,6 @@ namespace Unity.FPS.Gameplay
             {
                 AreaOfDamage.InflictDamageInArea(finalDamage, point, HittableLayers, k_TriggerInteraction,
                     m_ProjectileBase.Owner);
-
-                Debug.Log($"[Projectile] AOE | BaseDamage={baseDamage} FinalDamage={finalDamage}");
             }
             else // <-- POINT PATH
             {
@@ -248,7 +246,6 @@ namespace Unity.FPS.Gameplay
                     damageable.InflictDamage(finalDamage, false, m_ProjectileBase.Owner);
 
                     float hpAfter = health ? health.CurrentHealth : -1f;
-                    Debug.Log($"[Projectile] Hit {collider.name} | BaseDamage={baseDamage} FinalDamage={finalDamage} | HP Before={hpBefore} | HP After={hpAfter}");
                 }
             }
 

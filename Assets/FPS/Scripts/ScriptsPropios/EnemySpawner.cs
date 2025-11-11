@@ -38,7 +38,6 @@ namespace Unity.FPS.ours
 
         public void SpawnEnemyOnRadius(GameObject enemy)
         {
-            Debug.Log("esta haciendo spawn");
             Instantiate(enemy.gameObject, new Vector3(gameObject.transform.position.x + UnityEngine.Random.Range(-1*radius, radius), gameObject.transform.position.y , gameObject.transform.position.z + UnityEngine.Random.Range(-1 * radius, radius)), transform.rotation);
         }
     }
