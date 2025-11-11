@@ -432,6 +432,39 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 2729281213124354947}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &433760339 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4029795698512442334, guid: c2c9abcc2570cec46999dad4ba340cab,
+    type: 3}
+  m_PrefabInstance: {fileID: 1162622537}
+  m_PrefabAsset: {fileID: 0}
+--- !u!54 &433760347
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433760339}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1001 &447966093
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1302,31 +1335,6 @@ PrefabInstance:
       propertyPath: player
       value: 
       objectReference: {fileID: 2729281214152228924}
-    - target: {fileID: 3148226008932843619, guid: c2c9abcc2570cec46999dad4ba340cab,
-        type: 3}
-      propertyPath: drawPath
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3148226008932843619, guid: c2c9abcc2570cec46999dad4ba340cab,
-        type: 3}
-      propertyPath: debugLogs
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3148226008932843619, guid: c2c9abcc2570cec46999dad4ba340cab,
-        type: 3}
-      propertyPath: smoothPath
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3148226008932843619, guid: c2c9abcc2570cec46999dad4ba340cab,
-        type: 3}
-      propertyPath: enforceNodeEntry
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3148226008932843619, guid: c2c9abcc2570cec46999dad4ba340cab,
-        type: 3}
-      propertyPath: requireLoSForSnap
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 3309132071542280707, guid: c2c9abcc2570cec46999dad4ba340cab,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1385,7 +1393,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4029795698512442334, guid: c2c9abcc2570cec46999dad4ba340cab,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 433760347}
   m_SourcePrefab: {fileID: 100100000, guid: c2c9abcc2570cec46999dad4ba340cab, type: 3}
 --- !u!4 &1212145535 stripped
 Transform:

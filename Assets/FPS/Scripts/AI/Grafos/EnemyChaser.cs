@@ -1,7 +1,9 @@
-using System.Collections.Generic;
-using UnityEngine;
 using Project.Pathfinding;
+using System.Collections.Generic;
+using Unity.FPS.AI;
 using Unity.FPS.Game; // <-- añadido para usar Health
+using UnityEngine;
+using UnityEngine.Events;
 
 
 namespace Project.AI
@@ -12,6 +14,7 @@ namespace Project.AI
     {
         [SerializeField] NavGraph graph;
         [SerializeField] Transform player;
+        [SerializeField] Transform startNode;
 
         [Header("Movimiento")]
         [SerializeField] float speed = 3.5f;
@@ -39,6 +42,7 @@ namespace Project.AI
         [SerializeField] bool destroyOnDeath = true;
         [SerializeField] GameObject deathVfx;
         [SerializeField] float deathVfxLifetime = 5f;
+        [SerializeField] float daño = 5f;
 
         List<Vector3> route;
         int index;
@@ -49,6 +53,15 @@ namespace Project.AI
         Rigidbody rb;
         Health health;
         bool isDead;
+
+
+        public UnityAction onDamaged;
+
+        float m_LastTimeDamaged = float.NegativeInfinity;
+        [Header("Sounds")]
+        [Tooltip("Sound played when recieving damages")]
+        public AudioClip DamageTick;
+        bool m_WasDamagedThisFrame;
 
         void Awake()
         {
@@ -81,13 +94,24 @@ namespace Project.AI
 
             if (timeUp || moved) RepathPreservandoProgreso();
             Follow();
+            m_WasDamagedThisFrame = false;
         }
 
         // Método público para aplicar daño externo (por disparos, explosiones, etc.)
         public void ApplyDamage(float amount, GameObject damageSource = null)
         {
-            if (isDead || health == null) return;
-            health.TakeDamage(amount, damageSource);
+            if (damageSource && !damageSource.GetComponent<EnemyController>() || !damageSource.GetComponent<EnemyChaser>())
+            {
+
+                onDamaged?.Invoke();
+                m_LastTimeDamaged = Time.time;
+
+                // play the damage tick sound
+                if (DamageTick && !m_WasDamagedThisFrame)
+                    AudioUtility.CreateSFX(DamageTick, transform.position, AudioUtility.AudioGroups.DamageTick, 0f);
+
+                m_WasDamagedThisFrame = true;
+            }
         }
 
         // Método opcional para matar directamente (instakill)
@@ -245,6 +269,34 @@ namespace Project.AI
                 Gizmos.DrawSphere(route[i], 0.08f);
                 prev = route[i];
             }
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            Debug.Log("entre");
+            if (collision != null) 
+            {
+                OnHit(collision.collider);
+            }
+        }
+
+        void OnHit(Collider collider)
+        {
+            float baseDamage = daño;
+
+            
+                Damageable damageable = collider.GetComponent<Damageable>();
+                if (damageable)
+                {
+                    // (optional) pull Health to show HP before/after
+                    var health = collider.GetComponentInParent<Health>();
+                    float hpBefore = health ? health.CurrentHealth : -1f;
+
+                    damageable.InflictDamage(daño, false, this.gameObject);
+
+                    float hpAfter = health ? health.CurrentHealth : -1f;
+                    Debug.Log($"[CollisionHit] Hit {collider.name} | BaseDamage={baseDamage} FinalDamage={daño} | HP Before={hpBefore} | HP After={hpAfter}");
+                }
         }
     }
 }

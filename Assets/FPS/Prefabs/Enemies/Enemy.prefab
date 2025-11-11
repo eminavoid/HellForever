@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8449202952538640503}
   - component: {fileID: 3148226008932843619}
   - component: {fileID: -836880506963002131}
+  - component: {fileID: 7964424204467293134}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -143,6 +144,7 @@ MonoBehaviour:
   destroyOnDeath: 1
   deathVfx: {fileID: 0}
   deathVfxLifetime: 5
+  DamageTick: {fileID: 0}
 --- !u!114 &-836880506963002131
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,5 +157,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e27364eefd6dd0341ba72a3bfc0d9727, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxHealth: 10
+  MaxHealth: 100
   CriticalHealthRatio: 0.3
+--- !u!114 &7964424204467293134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4029795698512442334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9b0ce1bb69c96b49a7ac1098a7f5796, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DamageMultiplier: 1
+  SensibilityToSelfdamage: 0
