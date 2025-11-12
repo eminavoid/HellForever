@@ -330,23 +330,5 @@ namespace Unity.FPS.Gameplay
             }
         }
 
-        //void OnHit(Collider collider)
-        //{
-        //    float baseDamage = daño;
-
-            
-        //        Damageable damageable = collider.GetComponent<Damageable>();
-        //        if (damageable)
-        //        {
-        //            // (optional) pull Health to show HP before/after
-        //            var health = collider.GetComponentInParent<Health>();
-        //            float hpBefore = health ? health.CurrentHealth : -1f;
-
-        //            damageable.InflictDamage(daño, false, this.gameObject);
-
-        //            float hpAfter = health ? health.CurrentHealth : -1f;
-        //            Debug.Log($"[CollisionHit] Hit {collider.name} | BaseDamage={baseDamage} FinalDamage={daño} | HP Before={hpBefore} | HP After={hpAfter}");
-        //        }
-        //}
     }
 }
