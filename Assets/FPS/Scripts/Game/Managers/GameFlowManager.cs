@@ -129,8 +129,7 @@ namespace Unity.FPS.Game
             switch (current)
             {
                 case 3: nextIndex = 4; return true;
-                case 4: nextIndex = 5; return true;
-                case 5: nextIndex = 0; return true;
+                case 4: nextIndex = 0; return true;
                 default:
                     nextIndex = -1;
                     return false; // fallback to WinSceneName

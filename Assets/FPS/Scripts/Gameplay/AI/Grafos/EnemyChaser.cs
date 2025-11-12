@@ -1,14 +1,14 @@
-using Project.Pathfinding;
+using Unity.FPS.Pathfinding;
 using System.Collections.Generic;
 using Unity.FPS.AI;
-using Unity.FPS.Game; // <-- añadido para usar Health
+using Unity.FPS.Game;
+using Unity.FPS.Gameplay;
 using UnityEngine;
 using UnityEngine.Events;
 
 
-namespace Project.AI
+namespace Unity.FPS.Gameplay
 {
-    // Añadimos el requerimiento para que el objeto tenga Health
     [RequireComponent(typeof(Health))]
     public class EnemyChaser : MonoBehaviour
     {
@@ -53,6 +53,7 @@ namespace Project.AI
         Rigidbody rb;
         Health health;
         bool isDead;
+        EnemyManager m_EnemyManager;
 
 
         public UnityAction onDamaged;
@@ -68,11 +69,17 @@ namespace Project.AI
             cc = GetComponent<CharacterController>();
             rb = GetComponent<Rigidbody>();
             health = GetComponent<Health>();
+
+            player = GameObject.Find("Player").transform;
         }
 
         void Start()
         {
+            m_EnemyManager = FindAnyObjectByType<EnemyManager>();
+            DebugUtility.HandleErrorIfNullFindObject<EnemyManager, EnemyController>(m_EnemyManager, this);
             if (!graph) graph = FindObjectOfType<NavGraph>();
+
+            m_EnemyManager.RegisterEnemy(this.gameObject);
 
             // Suscribirse a eventos de vida
             if (health != null)
@@ -118,13 +125,12 @@ namespace Project.AI
         public void Kill()
         {
             if (health == null) return;
+            m_EnemyManager.UnregisterEnemy(this.gameObject);
             health.Kill(); // disparará HandleDeath vía evento
         }
 
         void HandleDamaged(float dmg, GameObject source)
         {
-            if (debugLogs)
-                Debug.Log($"[EnemyChaser] Recibió daño={dmg} de {(source ? source.name : "desconocido")} | HP={health.CurrentHealth}");
         }
 
         void HandleDeath()
@@ -142,10 +148,7 @@ namespace Project.AI
                 if (deathVfxLifetime > 0f) Destroy(vfx, deathVfxLifetime);
             }
 
-            // Notificar evento global (si usas sistema de eventos del proyecto)
-            Events.EnemyKillEvent.Enemy = gameObject;
-            Events.EnemyKillEvent.RemainingEnemyCount = 0; // Ajusta si llevas conteo real
-            EventManager.Broadcast(Events.EnemyKillEvent);
+            m_EnemyManager.UnregisterEnemy(this.gameObject);
 
             if (destroyOnDeath)
                 Destroy(gameObject);

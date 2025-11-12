@@ -62,7 +62,6 @@ namespace Unity.FPS.Game
                 for (int i = 0; i < wavesCount; i++)
                 {
                     int enemyQuantity = UnityEngine.Random.Range(minEnemyCount, maxEnemyCount);
-                    Debug.Log(spawnObjects.Count);
                     List<GameObject> spawnObjectsList = new List<GameObject>();
                     for (int j = 0; j < enemyQuantity; j++)
                     {
@@ -79,7 +78,6 @@ namespace Unity.FPS.Game
             if (!spawnQueue.ColaVacia() && spawners.Count != 0)
             {
                 List<GameObject> wave = spawnQueue.Primero();
-                Debug.Log("lista de wave tiene: " + wave.Count);
 
                 foreach (GameObject obj in wave)
                 {

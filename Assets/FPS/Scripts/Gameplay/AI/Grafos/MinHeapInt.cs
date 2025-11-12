@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Project.Pathfinding
+namespace Unity.FPS.Pathfinding
 {
     internal class MinHeapInt
     {

@@ -1,5 +1,5 @@
 using UnityEngine;
-using Project.Pathfinding;
+using Unity.FPS.Pathfinding;
 
 namespace GameAI.DebugTools
 {

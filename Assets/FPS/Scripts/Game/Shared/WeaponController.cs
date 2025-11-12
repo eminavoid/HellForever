@@ -277,7 +277,6 @@ namespace Unity.FPS.Game
                 m_CurrentAmmo = Mathf.Clamp(m_CurrentAmmo, 0, MaxAmmo);
                 IsCooling = true;
 
-                Debug.Log($"[Reload] +{(m_CurrentAmmo - before):F2} | baseRate={AmmoReloadRate:F2}/s effRate={effectiveRate:F2}/s mul={reloadMul:F2} | baseDelay={AmmoReloadDelay:F2}s effDelay={effectiveDelay:F2}s");
 
             }
             else
@@ -413,9 +412,6 @@ namespace Unity.FPS.Game
             {
                 HandleShoot();
                 m_CurrentAmmo -= 1f;
-                Debug.Log($"[FireGate] atkMul={atkMul}");
-
-
                 return true;
             }
 
@@ -474,7 +470,6 @@ namespace Unity.FPS.Game
                 if (newProjectile.TryGetComponent<IHasDamageMultiplier>(out var dmgConsumer))
                 {
                     dmgConsumer.SetDamageMultiplier(weapMul);
-                    Debug.Log($"[Weapon] pass WeaponDamageMul={weapMul} to {newProjectile.name}");
                 }
 
                 newProjectile.Shoot(this);

@@ -62,9 +62,6 @@ namespace Unity.FPS.Game
 
             CurrentHealth = Mathf.Clamp(CurrentHealth - final, 0f, MaxHealth);
 
-            Debug.Log($"[Health] {name} took damage from {(damageSource ? damageSource.name : "unknown")}" +
-                      $" | Base={baseAmount} Final={final} (Mul={mul}) | HP {healthBefore} -> {CurrentHealth}");
-
             float trueDamageAmount = healthBefore - CurrentHealth;
             if (trueDamageAmount > 0f)
                 OnDamaged?.Invoke(trueDamageAmount, damageSource);
