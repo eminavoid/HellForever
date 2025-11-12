@@ -235985,6 +235985,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 652071766676462375, guid: 89ffe1679525774438fa4cfa04831c39,
         type: 3}
+      propertyPath: minEnemyCount
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 652071766676462375, guid: 89ffe1679525774438fa4cfa04831c39,
+        type: 3}
       propertyPath: spawnObjects.Array.size
       value: 3
       objectReference: {fileID: 0}
