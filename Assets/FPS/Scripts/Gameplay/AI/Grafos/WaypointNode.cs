@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Project.Pathfinding
+namespace Unity.FPS.Pathfinding
 {
     public class WaypointNode : MonoBehaviour
     {

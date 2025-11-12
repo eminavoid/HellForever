@@ -126,7 +126,7 @@ namespace Unity.FPS.AI
             m_ActorsManager = FindAnyObjectByType<ActorsManager>();
             DebugUtility.HandleErrorIfNullFindObject<ActorsManager, EnemyController>(m_ActorsManager, this);
 
-            m_EnemyManager.RegisterEnemy(this);
+            m_EnemyManager.RegisterEnemy(this.gameObject);
 
             m_Health = GetComponent<Health>();
             DebugUtility.HandleErrorIfNullGetComponent<Health, EnemyController>(m_Health, this, gameObject);
@@ -364,7 +364,7 @@ namespace Unity.FPS.AI
             Destroy(vfx, 5f);
 
             // tells the game flow manager to handle the enemy destuction
-            m_EnemyManager.UnregisterEnemy(this);
+            m_EnemyManager.UnregisterEnemy(this.gameObject);
 
             // loot an object
             if (TryDropItem())
