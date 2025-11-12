@@ -64,6 +64,8 @@ namespace Unity.FPS.Gameplay
         public AudioClip DamageTick;
         bool m_WasDamagedThisFrame;
 
+        Coroutine m_DamageCoroutine;
+
         void Awake()
         {
             cc = GetComponent<CharacterController>();
@@ -274,32 +276,77 @@ namespace Unity.FPS.Gameplay
             }
         }
 
-        private void OnTriggerEnter(Collider collision)
+        System.Collections.IEnumerator DamageOverTime(Damageable target)
         {
-            Debug.Log("entre");
-            if (collision.CompareTag("Player")) 
+            while (true)
             {
-                OnHit(collision);
+                if (target == null || isDead)
+                {
+                    m_DamageCoroutine = null;
+                    yield break;
+                }
+
+                float baseDamage = daño;
+                var health = target.GetComponentInParent<Health>();
+                float hpBefore = health ? health.CurrentHealth : -1f;
+
+                target.InflictDamage(daño, false, this.gameObject);
+
+                float hpAfter = health ? health.CurrentHealth : -1f;
+                Debug.Log($"[DamageOverTime] Hit {target.name} | BaseDamage={baseDamage} FinalDamage={daño} | HP Before={hpBefore} | HP After={hpAfter}");
+
+                yield return new WaitForSeconds(0.5f);
             }
         }
 
-        void OnHit(Collider collider)
+        private void OnTriggerEnter(Collider collision)
         {
-            float baseDamage = daño;
+            if (isDead) return;
 
-            
-                Damageable damageable = collider.GetComponent<Damageable>();
+            if (collision.CompareTag("Player"))
+            {
+                Damageable damageable = collision.GetComponent<Damageable>();
                 if (damageable)
                 {
-                    // (optional) pull Health to show HP before/after
-                    var health = collider.GetComponentInParent<Health>();
-                    float hpBefore = health ? health.CurrentHealth : -1f;
-
-                    damageable.InflictDamage(daño, false, this.gameObject);
-
-                    float hpAfter = health ? health.CurrentHealth : -1f;
-                    Debug.Log($"[CollisionHit] Hit {collider.name} | BaseDamage={baseDamage} FinalDamage={daño} | HP Before={hpBefore} | HP After={hpAfter}");
+                    if (m_DamageCoroutine != null)
+                    {
+                        StopCoroutine(m_DamageCoroutine);
+                    }
+                    m_DamageCoroutine = StartCoroutine(DamageOverTime(damageable));
                 }
+            }
         }
+
+        private void OnTriggerExit(Collider collision)
+        {
+            if (collision.CompareTag("Player"))
+            {
+                Debug.Log("Player salió del trigger. Deteniendo daño.");
+                if (m_DamageCoroutine != null)
+                {
+                    StopCoroutine(m_DamageCoroutine);
+                    m_DamageCoroutine = null;
+                }
+            }
+        }
+
+        //void OnHit(Collider collider)
+        //{
+        //    float baseDamage = daño;
+
+            
+        //        Damageable damageable = collider.GetComponent<Damageable>();
+        //        if (damageable)
+        //        {
+        //            // (optional) pull Health to show HP before/after
+        //            var health = collider.GetComponentInParent<Health>();
+        //            float hpBefore = health ? health.CurrentHealth : -1f;
+
+        //            damageable.InflictDamage(daño, false, this.gameObject);
+
+        //            float hpAfter = health ? health.CurrentHealth : -1f;
+        //            Debug.Log($"[CollisionHit] Hit {collider.name} | BaseDamage={baseDamage} FinalDamage={daño} | HP Before={hpBefore} | HP After={hpAfter}");
+        //        }
+        //}
     }
 }
