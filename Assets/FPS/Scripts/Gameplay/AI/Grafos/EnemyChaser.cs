@@ -274,12 +274,12 @@ namespace Unity.FPS.Gameplay
             }
         }
 
-        private void OnCollisionEnter(Collision collision)
+        private void OnTriggerEnter(Collider collision)
         {
             Debug.Log("entre");
-            if (collision != null) 
+            if (collision.CompareTag("Player")) 
             {
-                OnHit(collision.collider);
+                OnHit(collision);
             }
         }
 
