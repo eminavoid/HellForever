@@ -1,8 +1,8 @@
 using System.Collections;
 using Photon.Pun;
 using UnityEngine;
-using Unity.FPS.Game;       // Health
-using Unity.FPS.Gameplay;   // PlayerCharacterController
+using Unity.FPS.Game;        
+using Unity.FPS.Gameplay;    
 
 public class PlayerNetworkLife : MonoBehaviourPun
 {
@@ -21,6 +21,7 @@ public class PlayerNetworkLife : MonoBehaviourPun
     Quaternion _initialRot;
     bool _isDead;
 
+    private GameManager _gameManager;
     void Awake()
     {
         _controller = GetComponent<PlayerCharacterController>();
@@ -34,6 +35,8 @@ public class PlayerNetworkLife : MonoBehaviourPun
         _initialRot = transform.rotation;
 
         if (_health) _health.OnDie += OnDied;
+
+        _gameManager = GameManager.Instance;     
     }
 
     void OnDestroy() { if (_health) _health.OnDie -= OnDied; }
@@ -41,6 +44,15 @@ public class PlayerNetworkLife : MonoBehaviourPun
     void OnDied()
     {
         if (_isDead) return;
+
+        if (photonView.IsMine && _gameManager != null)
+        {
+            _gameManager.photonView.RPC(
+                nameof(GameManager.RPC_NotifyPlayerDead),
+                RpcTarget.MasterClient,
+                photonView.Owner.ActorNumber
+            );
+        }
         photonView.RPC(nameof(RPC_PlayerDied), RpcTarget.All);
     }
 
@@ -55,9 +67,7 @@ public class PlayerNetworkLife : MonoBehaviourPun
         if (_cc) _cc.enabled = false;
         foreach (var c in _colliders) c.enabled = false;
         foreach (var r in _renderers) r.enabled = false;
-
-        if (PhotonNetwork.IsMasterClient)
-            NetworkGameState.Instance?.NotifyPlayerDead(photonView.ViewID);
+        
 
         if (photonView.IsMine)
             StartCoroutine(CoRespawnAfterDelay());
@@ -80,7 +90,6 @@ public class PlayerNetworkLife : MonoBehaviourPun
 
         if (_health) _health.RespawnFull();
 
-        // re-enable componentes
         foreach (var r in _renderers) r.enabled = true;
         foreach (var c in _colliders) c.enabled = true;
         if (_cc) _cc.enabled = true;
@@ -89,7 +98,13 @@ public class PlayerNetworkLife : MonoBehaviourPun
 
         _isDead = false;
 
-        if (PhotonNetwork.IsMasterClient)
-            NetworkGameState.Instance?.NotifyPlayerRespawn(photonView.ViewID);
+        if (photonView.IsMine && _gameManager != null)
+        {
+            _gameManager.photonView.RPC(
+                nameof(GameManager.RPC_NotifyPlayerRespawn),
+                RpcTarget.MasterClient,
+                photonView.Owner.ActorNumber
+            );
+        }
     }
 }

@@ -74,7 +74,7 @@ namespace Unity.FPS.Game
         void OnAllObjectivesCompleted(AllObjectivesCompletedEvent evt) => EndGame(true);
         //void OnPlayerDeath(PlayerDeathEvent evt) => EndGame(false);
 
-        void EndGame(bool win)
+        public void EndGame(bool win)
         {
             // unlocks the cursor before leaving the scene, to be able to click buttons
             Cursor.lockState = CursorLockMode.None;

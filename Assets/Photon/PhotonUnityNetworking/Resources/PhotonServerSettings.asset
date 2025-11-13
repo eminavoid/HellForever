@@ -49,6 +49,9 @@ MonoBehaviour:
   - RPC_RespawnFull
   - RPC_ApplyPowerup
   - RPC_RequestPickup
+  - RPC_NotifyPlayerDead
+  - RPC_NotifyPlayerRespawn
+  - RPC_StartGame
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
