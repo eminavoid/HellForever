@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Collections.Generic;
-using TMPro;
+using TMPro;    
 
 public class LobbyManager : MonoBehaviourPunCallbacks
 {
@@ -14,9 +14,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public GameObject panel_LobbyBrowser;
     public GameObject panel_InLobby;
 
+    [Header("Main Menu")]
+    public TMP_InputField playerNameInput;
+
     [Header("Create Lobby")]
-    public TMP_InputField roomNameInput;
-    public TMP_Dropdown maxPlayersDropdown;
+    public TMP_InputField roomNameInput;   
+    public TMP_Dropdown maxPlayersDropdown;   
 
     [Header("Lobby Browser")]
     public ScrollRect lobbyScrollView;
@@ -26,12 +29,20 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     [Header("In Lobby")]
     public TMP_Text playerListText;
+    public TMP_Text lobbyNameText;
     public string gameSceneName;
+
+    private const string PlayerNamePrefKey = "PlayerName";
 
     void Start()
     {
         lobbyItemParent = lobbyScrollView.content;
         ActivatePanel(panel_Connect);
+
+        PhotonNetwork.AutomaticallySyncScene = true;
+
+        string defaultName = PlayerPrefs.GetString(PlayerNamePrefKey, "");
+        playerNameInput.text = defaultName;
         PhotonNetwork.ConnectUsingSettings();
     }
 
@@ -68,6 +79,15 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public override void OnJoinedRoom()
     {
         ActivatePanel(panel_InLobby);
+
+        if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("DisplayName"))
+        {
+            lobbyNameText.text = (string)PhotonNetwork.CurrentRoom.CustomProperties["DisplayName"];
+        }
+        else
+        {
+            lobbyNameText.text = PhotonNetwork.CurrentRoom.Name;
+        }
         UpdatePlayerListUI();
         CheckIfRoomIsFull();
     }
@@ -93,9 +113,24 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         ActivatePanel(panel_MainMenu);
     }
 
-    #endregion
+    public override void OnLeftRoom()
+    {
+        ActivatePanel(panel_MainMenu);
+    }
 
-    #region UI Button Clicks
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        UpdatePlayerListUI();
+    }
+
+#endregion
+
+#region UI Button Clicks
+
+public void OnPlayerNameChanged(string newName)
+    {
+        PlayerPrefs.SetString(PlayerNamePrefKey, newName);
+    }
 
     public void OnClick_ShowCreateLobby()
     {
@@ -115,10 +150,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void OnClick_CreateLobby()
     {
-        string roomName = roomNameInput.text;
-        if (string.IsNullOrEmpty(roomName))
+        SetFinalPlayerName();    
+
+        string displayName = roomNameInput.text;
+        if (string.IsNullOrEmpty(displayName))
         {
-            roomName = "Room " + Random.Range(1000, 10000);
+            displayName = "Room " + Random.Range(1000, 10000);
         }
 
         string maxPlayersString = maxPlayersDropdown.options[maxPlayersDropdown.value].text;
@@ -129,22 +166,45 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         roomOptions.CustomRoomProperties = new ExitGames.Client.Photon.Hashtable
         {
-            { "DisplayName", roomName }
+            { "DisplayName", displayName }
         };
 
         roomOptions.CustomRoomPropertiesForLobby = new string[] { "DisplayName" };
 
-        PhotonNetwork.CreateRoom(roomName, roomOptions);
+        string internalRoomName = "Room_" + System.Guid.NewGuid().ToString();
+
+        PhotonNetwork.CreateRoom(internalRoomName, roomOptions);
     }
 
     public void JoinRoom(string roomName)
     {
+        SetFinalPlayerName();    
+
         PhotonNetwork.JoinRoom(roomName);
+    }
+
+    public void OnClick_LeaveLobby()
+    {
+        PhotonNetwork.LeaveRoom();
     }
 
     #endregion
 
     #region Helper Functions
+
+    private void SetFinalPlayerName()
+    {
+        string playerName = playerNameInput.text;
+
+        if (string.IsNullOrEmpty(playerName))
+        {
+            playerName = "Player " + Random.Range(100, 1000);
+            playerNameInput.text = playerName;        
+        }
+
+        PhotonNetwork.NickName = playerName;
+        PlayerPrefs.SetString(PlayerNamePrefKey, playerName);
+    }
 
     private void ActivatePanel(GameObject panelToActivate)
     {
@@ -188,7 +248,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         playerListText.text = "";
         foreach (Player p in PhotonNetwork.PlayerList)
         {
-            playerListText.text += (p.IsMasterClient ? "(Host) " : "") + p.NickName + "\n";
+            playerListText.text += (p.IsMasterClient ? "(Host): " : "") + p.NickName + "\n";
         }
     }
 

@@ -148,6 +148,7 @@ GameObject:
   - component: {fileID: 208212607846633672}
   - component: {fileID: 1908725539690922317}
   - component: {fileID: 7620335149897785617}
+  - component: {fileID: 4248484749810169579}
   m_Layer: 5
   m_Name: LobbyItemPrefab
   m_TagString: Untagged
@@ -257,3 +258,17 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4248484749810169579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8854016081870204330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 440a9b2879b464346b9846175e22339f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roomInfoText: {fileID: 3143838714284228803}
+  joinButton: {fileID: 7620335149897785617}
