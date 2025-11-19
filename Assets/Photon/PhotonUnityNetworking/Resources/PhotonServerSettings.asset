@@ -52,6 +52,7 @@ MonoBehaviour:
   - RPC_NotifyPlayerDead
   - RPC_NotifyPlayerRespawn
   - RPC_StartGame
+  - AddKillRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
