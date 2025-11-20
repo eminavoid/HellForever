@@ -76,6 +76,17 @@ namespace Unity.FPS.Game
 
         public void EndGame(bool win)
         {
+            // --- NUEVO: GUARDAR PUNTAJES SIEMPRE (GANES O PIERDAS) ---
+            // Buscamos el ScoreManager y le decimos que suba los datos ahora mismo
+            GameObject managers = GameObject.Find("_Managers");
+            if (managers != null)
+            {
+                // Usamos SendMessage para evitar errores de referencias o assemblies
+                managers.SendMessage("ProcessEndGameAndSubmit", SendMessageOptions.DontRequireReceiver);
+                Debug.Log("[GameFlowManager] Enviando orden de guardar puntajes a LootLocker...");
+            }
+            // ---------------------------------------------------------
+
             // unlocks the cursor before leaving the scene, to be able to click buttons
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -116,6 +127,7 @@ namespace Unity.FPS.Game
             }
             else
             {
+                // LOGICA DE DERROTA
                 m_SceneToLoadByIndex = -1;
                 m_SceneToLoadByName = LoseSceneName;
                 m_TimeLoadEndGameScene = Time.time + EndSceneLoadDelay;

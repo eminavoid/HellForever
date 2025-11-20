@@ -1,5 +1,4 @@
 using Photon.Pun;
-using Unity.FPS.Game;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -7,19 +6,26 @@ namespace Unity.FPS.ours
 {
     public class EnemySpawner : MonoBehaviour
     {
-        [SerializeField] float radius = 5f;
-        WavesManager m_waveManager;
+        [Header("Radio alrededor del player")]
+        [SerializeField] private float minRadius = 10f;
+        [SerializeField] private float maxRadius = 20f;
 
-        void Awake() //  registrar lo antes posible
+        private Unity.FPS.Game.WavesManager m_waveManager;
+
+        private void Awake()
         {
-            m_waveManager = FindAnyObjectByType<WavesManager>();
+            m_waveManager = FindAnyObjectByType<Unity.FPS.Game.WavesManager>();
             if (m_waveManager != null)
+            {
                 m_waveManager.registerSpawner(this);
+            }
             else
+            {
                 Debug.LogWarning("[EnemySpawner] No WavesManager found in scene.");
+            }
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
             if (m_waveManager != null)
                 m_waveManager.unregisterSpawner(this);
@@ -33,15 +39,56 @@ namespace Unity.FPS.ours
                 return;
             }
 
-            Vector3 pos = transform.position + new Vector3(
-                Random.Range(-radius, radius),
-                0f,
-                Random.Range(-radius, radius)
-            );
+            //players por tag
+            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+            if (players == null || players.Length == 0)
+            {
+                Debug.LogWarning("[EnemySpawner] No encontré players con tag 'Player'.");
+                return;
+            }
 
-            Debug.Log($"[EnemySpawner] Spawning '{enemyPrefabName}' at {pos}");
-            var go = PhotonNetwork.Instantiate(enemyPrefabName, pos, Quaternion.identity);
-            go.SetActive(true);
+            //elegir palayer aleat.
+            GameObject targetPlayer = players[Random.Range(0, players.Length)];
+            Vector3 center = targetPlayer.transform.position;
+
+            //posición sobre un "circulo" [minRadius, maxRadius]
+            float r = Random.Range(minRadius, maxRadius);
+            Vector2 offset2D = Random.insideUnitCircle.normalized * r;
+            Vector3 spawnPos = center + new Vector3(offset2D.x, 0f, offset2D.y);
+
+            Debug.Log($"[EnemySpawner] Spawning '{enemyPrefabName}' cerca de {targetPlayer.name} en {spawnPos}");
+
+            GameObject go = PhotonNetwork.Instantiate(enemyPrefabName, spawnPos, Quaternion.identity);
+
+            if (go == null)
+            {
+                Debug.LogError($"[EnemySpawner] NO se pudo instanciar '{enemyPrefabName}'. ¿Está en Resources y el nombre coincide?");
+            }
         }
+
+        private void OnDrawGizmosSelected()
+        {
+            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+            if (players == null || players.Length == 0)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireSphere(transform.position, minRadius);
+
+                Gizmos.color = Color.green;
+                Gizmos.DrawWireSphere(transform.position, maxRadius);
+                return;
+            }
+
+            Transform player = players[0].transform;
+            Vector3 center = player.position;
+
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(center, minRadius);
+
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(center, maxRadius);
+        }
+
     }
+
 }
