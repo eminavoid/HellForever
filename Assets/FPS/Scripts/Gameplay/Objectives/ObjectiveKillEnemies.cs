@@ -11,99 +11,75 @@ namespace Unity.FPS.Gameplay
         [Tooltip("If MustKillAllEnemies is false, this is the amount of enemy kills required")]
         public int KillsToCompleteObjective = 5;
 
-        [Tooltip("Start sending notification about remaining enemies when this amount of enemies is left")]
-        public int NotificationEnemiesRemainingThreshold = 3;
-
-        public int wavesTotal;
-        public int wavesRemaining;
-
-        private WavesManager m_WaveManager;
-
-        int m_KillTotal;
+        // Variables visuales
+        private int _currentWaveDisplay = 1;
+        private int _totalWavesDisplay = 1;
+        private int _killTotal = 0;
 
         protected override void Start()
         {
-            
+            // Intentamos obtener el total inicial
+            var wm = FindAnyObjectByType<WavesManager>();
+            if (wm != null)
+            {
+                _totalWavesDisplay = wm.WavesCount;
+            }
 
-            m_WaveManager = FindAnyObjectByType<WavesManager>();
-
-            wavesTotal = m_WaveManager.WavesCount;
-            wavesRemaining = m_WaveManager.WavesCount - 1; 
-
+            // Suscribirse a eventos
             EventManager.AddListener<EnemyKillEvent>(OnEnemyKilled);
 
-            // set a title and description specific for this type of objective, if it hasn't one
-            if (string.IsNullOrEmpty(Title))
-                Title = "Survive " + (MustKillAllEnemies ? "all the" : wavesTotal.ToString()) +
-                        " waves";
+            // --- SUSCRIPCIÓN AL EVENTO DEL WAVESMANAGER ---
+            WavesManager.OnWaveChanged += HandleWaveChange;
 
-            if (string.IsNullOrEmpty(Description))
-                Description = GetUpdatedCounterAmount();
+            if (string.IsNullOrEmpty(Title)) Title = "Sobrevive a las oleadas";
+            if (string.IsNullOrEmpty(Description)) Description = GetUpdatedCounterAmount();
 
             base.Start();
-        }
-
-        void OnEnemyKilled(EnemyKillEvent evt)
-        {
-            if (IsCompleted)
-                return;
-
-            m_KillTotal++;
-
-            if (MustKillAllEnemies)
-                KillsToCompleteObjective = evt.RemainingEnemyCount + m_KillTotal;
-
-            int targetRemaining = MustKillAllEnemies ? evt.RemainingEnemyCount : KillsToCompleteObjective - m_KillTotal;
-
-            // update the objective text according to how many enemies remain to kill
-            if (targetRemaining == 0)
-            {
-                Debug.Log("waves restantes: " + wavesTotal);
-                if (wavesRemaining > 0)
-                {
-                    m_WaveManager.WaveExecute();
-                    m_KillTotal = 0;
-
-                    targetRemaining = MustKillAllEnemies ? evt.RemainingEnemyCount : KillsToCompleteObjective - m_KillTotal;
-                    string notificationText = NotificationEnemiesRemainingThreshold >= targetRemaining
-                    ? targetRemaining + " enemies to kill left"
-                    : string.Empty;
-
-                    UpdateObjective(string.Empty, GetUpdatedCounterAmount(), notificationText);
-                    wavesRemaining--;
-
-                    DisplayNewTitle("Wave " + (wavesTotal-wavesRemaining) + " incoming");
-                } else 
-                {
-                    CompleteObjective(string.Empty, GetUpdatedCounterAmount(), "Objective complete : " + Title);
-                }
-            }
-            else if (targetRemaining == 1)
-            {
-                string notificationText = NotificationEnemiesRemainingThreshold >= targetRemaining
-                    ? "One enemy left"
-                    : string.Empty;
-                UpdateObjective(string.Empty, GetUpdatedCounterAmount(), notificationText);
-            }
-            else
-            {
-                // create a notification text if needed, if it stays empty, the notification will not be created
-                string notificationText = NotificationEnemiesRemainingThreshold >= targetRemaining
-                    ? targetRemaining + " enemies to kill left"
-                    : string.Empty;
-
-                UpdateObjective(string.Empty, GetUpdatedCounterAmount(), notificationText);
-            }
-        }
-
-        string GetUpdatedCounterAmount()
-        {
-            return m_KillTotal + " / " + KillsToCompleteObjective;
         }
 
         void OnDestroy()
         {
             EventManager.RemoveListener<EnemyKillEvent>(OnEnemyKilled);
+            // --- DESUSCRIPCIÓN IMPORTANTE ---
+            WavesManager.OnWaveChanged -= HandleWaveChange;
+        }
+
+        // Este método se ejecuta automáticamente cuando el WavesManager cambia de ronda
+        void HandleWaveChange(int current, int total)
+        {
+            _currentWaveDisplay = current;
+            _totalWavesDisplay = total;
+
+            // Actualizamos el texto del objetivo
+            UpdateObjective(string.Empty, GetUpdatedCounterAmount(), string.Empty);
+
+            // Mostramos el título grande (Banner) en pantalla
+            if (total == 999) // Código para modo infinito
+            {
+                DisplayNewTitle($"Endless Wave {_currentWaveDisplay}");
+            }
+            else
+            {
+                DisplayNewTitle($"Wave {_currentWaveDisplay} / {_totalWavesDisplay}");
+            }
+        }
+
+        void OnEnemyKilled(EnemyKillEvent evt)
+        {
+            if (IsCompleted) return;
+
+            _killTotal++;
+
+            // Solo actualizamos el contador de kills, no tocamos las ondas
+            UpdateObjective(string.Empty, GetUpdatedCounterAmount(), string.Empty);
+        }
+
+        string GetUpdatedCounterAmount()
+        {
+            // Si es 999 mostramos el símbolo de infinito, si no el número
+            string totalStr = (_totalWavesDisplay == 999) ? "∞" : _totalWavesDisplay.ToString();
+
+            return $"Wave: {_currentWaveDisplay} / {totalStr}\nEnemies Killed: {_killTotal}";
         }
     }
 }

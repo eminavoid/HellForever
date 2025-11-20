@@ -3,180 +3,201 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.FPS.ours;
+using System.Linq;
+using System; // <--- 1. ESTE USING ES OBLIGATORIO PARA QUE FUNCIONE EL EVENTO
 
 namespace Unity.FPS.Game
 {
+    [System.Serializable]
+    public class WaveEnemyConfig
+    {
+        public string Name;
+        public GameObject Prefab;
+        [Range(0, 100)] public float DropChance;
+    }
+
+    [System.Serializable]
+    public class WaveSettings
+    {
+        public string WaveName = "Wave 1";
+        public float DurationSeconds = 30f;
+        public float SpawnInterval = 4f;
+
+        [Header("Enemigos de esta oleada")]
+        public List<WaveEnemyConfig> enemiesInThisWave;
+    }
+
     public class WavesManager : MonoBehaviourPunCallbacks
     {
-        [Header("Waves")]
-        [SerializeField] private int wavesCount = 5;
-        [SerializeField] private int minEnemyCount = 1;
-        [SerializeField] private int maxEnemyCount = 10;
+        [Header("Configuración de Olas")]
+        [SerializeField] private List<WaveSettings> wavesList;
 
-        public int WavesCount
-        {
-            get { return wavesCount; }
-        }
+        [Header("Modo Infinito")]
+        [SerializeField] private bool enableEndless = false;
 
-        [Header("Tiempo entre enemigos")]
-        [SerializeField] private float spawnDelayBetweenEnemies = 0.3f;
-
-        [Header("Enemigos que pueden spawnear (PREFABS DE RESOURCES)")]
-        [SerializeField] private List<GameObject> spawnObjects;
+        [Header("Escenas")]
+        [SerializeField] private string victorySceneName = "VictoryScene";
 
         private readonly List<EnemySpawner> spawners = new();
-        private QueueTDA<List<GameObject>> spawnQueue;
+        private bool isGameActive = false;
 
-        bool isLaunchingWave = false;
+        // --- 2. ESTA ES LA LÍNEA QUE TE FALTA Y CAUSA EL ERROR ---
+        public static event Action<int, int> OnWaveChanged;
+        // ---------------------------------------------------------
+
+        // Compatibilidad con ObjectiveKillEnemies
+        public int WavesCount => wavesList.Count;
+        public void WaveExecute() { }
 
         public void registerSpawner(EnemySpawner s)
         {
-            if (!spawners.Contains(s))
-            {
-                spawners.Add(s);
-                Debug.Log($"[WavesManager] Spawner registrado. Total={spawners.Count}");
-            }
+            if (!spawners.Contains(s)) spawners.Add(s);
         }
 
         public void unregisterSpawner(EnemySpawner s)
         {
-            if (spawners.Contains(s))
-            {
-                spawners.Remove(s);
-                Debug.Log($"[WavesManager] Spawner removido. Total={spawners.Count}");
-            }
+            spawners.Remove(s);
         }
 
-        private void Awake()
+        private IEnumerator Start()
         {
-            spawnQueue = new QueueTDA<List<GameObject>>();
-            spawnQueue.InicializarCola(wavesCount);
-            CreateWaves();
-        }
+            yield return new WaitUntil(() => PhotonNetwork.InRoom && PhotonNetwork.IsConnected);
 
-        private void Start()
-        {
-            Debug.Log($"[WavesManager] Start. InRoom={PhotonNetwork.InRoom}, IsMaster={PhotonNetwork.IsMasterClient}");
-
-            if (PhotonNetwork.InRoom && PhotonNetwork.IsMasterClient)
-            {
-                TryLaunchWave();
-            }
-        }
-
-        private void CreateWaves()
-        {
-            if (!spawnQueue.ColaVacia())
-                return;
-
-            for (int i = 0; i < wavesCount; i++)
-            {
-                int count = Random.Range(minEnemyCount, maxEnemyCount + 1);
-                var list = new List<GameObject>(count);
-
-                for (int j = 0; j < count; j++)
-                {
-                    if (spawnObjects == null || spawnObjects.Count == 0)
-                    {
-                        Debug.LogError("[WavesManager] spawnObjects vacío, no puedo crear waves.");
-                        return;
-                    }
-
-                    list.Add(spawnObjects[Random.Range(0, spawnObjects.Count)]);
-                }
-
-                spawnQueue.Acolar(list);
-            }
-
-            Debug.Log($"[WavesManager] Creación de waves completa. Waves={wavesCount}");
-        }
-
-        //PHOTON CALLBACKS
-        public override void OnJoinedRoom()
-        {
-            Debug.Log("[WavesManager] OnJoinedRoom disparado.");
-            TryLaunchWave();
-        }
-
-        public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)
-        {
             if (PhotonNetwork.IsMasterClient)
             {
-                Debug.Log("[WavesManager] Soy nuevo MasterClient, lanzo wave.");
-                TryLaunchWave();
+                StartCoroutine(GameLoop());
             }
         }
 
-        //EJECUCIÓN DE WAVES
-        private void TryLaunchWave()
+        private IEnumerator GameLoop()
         {
-            if (!PhotonNetwork.IsMasterClient)
+            while (spawners.Count == 0)
             {
-                Debug.Log("[WavesManager] No soy MasterClient, no lanzo waves.");
-                return;
+                Debug.LogWarning("[WavesManager] Esperando spawners...");
+                yield return new WaitForSeconds(0.5f);
             }
 
-            if (isLaunchingWave)
-                return;
+            isGameActive = true;
+            Debug.Log("🎮 INICIO DEL JUEGO");
 
-            StartCoroutine(TryLaunchWaveCoroutine());
+            // FASE 1: OLEADAS NORMALES
+            for (int i = 0; i < wavesList.Count; i++)
+            {
+                // Disparar evento
+                OnWaveChanged?.Invoke(i + 1, wavesList.Count);
+
+                yield return StartCoroutine(RunSingleWave(wavesList[i]));
+            }
+
+            // FASE 2: ENDLESS
+            if (enableEndless && wavesList.Count > 0)
+            {
+                Debug.Log("♾️ INICIANDO MODO ENDLESS");
+                WaveSettings baseWave = wavesList[wavesList.Count - 1];
+                int endlessRoundNumber = 1;
+
+                while (isGameActive)
+                {
+                    WaveSettings endlessWave = new WaveSettings();
+                    endlessWave.WaveName = $"{baseWave.WaveName} (Extra {endlessRoundNumber})";
+                    endlessWave.SpawnInterval = baseWave.SpawnInterval;
+                    endlessWave.enemiesInThisWave = baseWave.enemiesInThisWave;
+
+                    float extraTime = baseWave.SpawnInterval * endlessRoundNumber;
+                    endlessWave.DurationSeconds = baseWave.DurationSeconds + extraTime;
+
+                    int currentDisplayRound = wavesList.Count + endlessRoundNumber;
+
+                    // Disparar evento (Total 999 indica infinito)
+                    OnWaveChanged?.Invoke(currentDisplayRound, 999);
+
+                    yield return StartCoroutine(RunSingleWave(endlessWave));
+                    endlessRoundNumber++;
+                }
+            }
+            else
+            {
+                EndGame();
+            }
         }
 
-        private IEnumerator TryLaunchWaveCoroutine()
+        private IEnumerator RunSingleWave(WaveSettings currentWave)
         {
-            isLaunchingWave = true;
+            Debug.Log($"🌊 INICIANDO: {currentWave.WaveName}");
 
-            int tries = 0;
+            GameObject managers = GameObject.Find("_Managers");
+            if (managers != null) managers.SendMessage("AddRound", SendMessageOptions.DontRequireReceiver);
 
-            // wsperar a que los spawners queden registrados
-            while (spawners.Count == 0 && tries < 40)
+            GameObject gameHUD = GameObject.Find("GameHUD");
+            if (gameHUD != null) gameHUD.SendMessage("CreateNotification", currentWave.WaveName, SendMessageOptions.DontRequireReceiver);
+
+            float timer = 0f;
+            float nextSpawnTime = 0f;
+
+            while (timer < currentWave.DurationSeconds)
             {
-                Debug.LogWarning("[WavesManager] No hay spawners aún, espero...");
-                tries++;
-                yield return new WaitForSeconds(0.25f);
+                timer += Time.deltaTime;
+                if (Time.time >= nextSpawnTime)
+                {
+                    SpawnRandomEnemy(currentWave.enemiesInThisWave);
+                    nextSpawnTime = Time.time + currentWave.SpawnInterval;
+                }
+                yield return null;
             }
 
-            if (spawners.Count == 0)
-            {
-                Debug.LogError("[WavesManager] No se encontraron spawners después de esperar.");
-                isLaunchingWave = false;
-                yield break;
-            }
-
-            WaveExecute();
-            isLaunchingWave = false;
+            Debug.Log($"✅ FIN DE {currentWave.WaveName}");
+            yield return new WaitForSeconds(2f);
         }
 
-        public void WaveExecute()
+        private void SpawnRandomEnemy(List<WaveEnemyConfig> enemiesAvailable)
         {
-            if (spawnQueue.ColaVacia())
-            {
-                Debug.LogWarning("[WavesManager] No hay waves en la cola.");
-                return;
-            }
+            if (spawners.Count == 0) return;
+            if (enemiesAvailable == null || enemiesAvailable.Count == 0) return;
 
-            var wave = spawnQueue.Primero();
-            Debug.Log($"[WavesManager] Ejecutando wave con {wave.Count} enemigos. Spawners={spawners.Count}");
+            GameObject prefabToSpawn = GetWeightedRandomEnemy(enemiesAvailable);
+            if (prefabToSpawn == null) return;
 
-            StartCoroutine(SpawnWaveCoroutine(wave));
-            spawnQueue.Desacolar();
+            var spawner = spawners[UnityEngine.Random.Range(0, spawners.Count)];
+            string cleanName = prefabToSpawn.name;
+            spawner.SpawnEnemyOnRadius(cleanName);
         }
 
-        private IEnumerator SpawnWaveCoroutine(List<GameObject> wave)
+        private GameObject GetWeightedRandomEnemy(List<WaveEnemyConfig> enemies)
         {
-            foreach (GameObject obj in wave)
+            float totalWeight = 0f;
+            foreach (var e in enemies) totalWeight += e.DropChance;
+
+            float randomValue = UnityEngine.Random.Range(0, totalWeight);
+            float currentSum = 0f;
+
+            foreach (var e in enemies)
             {
-                if (obj == null)
-                    continue;
-
-                string prefabName = obj.name.Split('(')[0].Trim();
-                var spawner = spawners[Random.Range(0, spawners.Count)];
-
-                Debug.Log($"[WavesManager] Spawneando '{prefabName}' usando spawner {spawner.name}");
-                spawner.SpawnEnemyOnRadius(prefabName);
-
-                yield return new WaitForSeconds(spawnDelayBetweenEnemies);
+                currentSum += e.DropChance;
+                if (randomValue <= currentSum) return e.Prefab;
             }
+            return null;
+        }
+
+        private void EndGame()
+        {
+            Debug.Log("🏆 JUEGO TERMINADO");
+            isGameActive = false;
+
+            GameObject managers = GameObject.Find("_Managers");
+            if (managers != null)
+            {
+                managers.SendMessage("ProcessEndGameAndSubmit", SendMessageOptions.DontRequireReceiver);
+            }
+            else
+            {
+                Debug.LogError("No encontré el objeto '_Managers'. Cargando victoria manual.");
+                LoadVictoryScene();
+            }
+        }
+
+        public void LoadVictoryScene()
+        {
+            PhotonNetwork.LoadLevel(victorySceneName);
         }
     }
 }

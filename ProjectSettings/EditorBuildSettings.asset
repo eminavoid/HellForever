@@ -15,13 +15,19 @@ EditorBuildSettings:
     path: Assets/FPS/Scenes/MainScene.unity
     guid: d794a2ef8ba31d847ad3c19d03e2ddb9
   - enabled: 1
-    path: Assets/FPS/Scenes/Factory.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
     path: Assets/FPS/Scenes/Woods.unity
     guid: 21db21372a48cdd4bb4f64de3b72dfab
   - enabled: 1
+    path: Assets/FPS/Scenes/Factory.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
     path: Assets/FPS/Scenes/WinScene.unity
     guid: 037d06fbede2b4041a843d9ee6fe750c
+  - enabled: 1
+    path: Assets/FPS/Scenes/Factory Endless.unity
+    guid: e1a43665d221c004f99d22124182c882
+  - enabled: 1
+    path: Assets/FPS/Scenes/Woods Endless.unity
+    guid: f3917fc8298497547a66d0dba60c396d
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

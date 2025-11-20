@@ -44,9 +44,66 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96029c13d7999314ebfd9450d8a70775, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wavesCount: 5
-  minEnemyCount: 1
-  maxEnemyCount: 10
-  spawnObjects:
-  - {fileID: 2015434656898269652, guid: 25a1b0efadb966e44889fce712c8ff8d, type: 3}
-  - {fileID: 2015434656898269652, guid: e29d43f43cc5d82499dd9926e01847d3, type: 3}
+  wavesList:
+  - WaveName: 1
+    DurationSeconds: 20
+    SpawnInterval: 3
+    enemiesInThisWave:
+    - Name: bot1
+      Prefab: {fileID: 2015434656898269652, guid: e29d43f43cc5d82499dd9926e01847d3,
+        type: 3}
+      DropChance: 25
+    - Name: bot2
+      Prefab: {fileID: 2015434656898269652, guid: 25a1b0efadb966e44889fce712c8ff8d,
+        type: 3}
+      DropChance: 75
+  - WaveName: 2
+    DurationSeconds: 20
+    SpawnInterval: 3
+    enemiesInThisWave:
+    - Name: Bot1
+      Prefab: {fileID: 2015434656898269652, guid: e29d43f43cc5d82499dd9926e01847d3,
+        type: 3}
+      DropChance: 25
+    - Name: Bot2
+      Prefab: {fileID: 2015434656898269652, guid: 25a1b0efadb966e44889fce712c8ff8d,
+        type: 3}
+      DropChance: 75
+  - WaveName: 3
+    DurationSeconds: 20
+    SpawnInterval: 3
+    enemiesInThisWave:
+    - Name: Bot1
+      Prefab: {fileID: 2015434656898269652, guid: e29d43f43cc5d82499dd9926e01847d3,
+        type: 3}
+      DropChance: 25
+    - Name: Bot2
+      Prefab: {fileID: 2015434656898269652, guid: 25a1b0efadb966e44889fce712c8ff8d,
+        type: 3}
+      DropChance: 75
+  - WaveName: 4
+    DurationSeconds: 20
+    SpawnInterval: 3
+    enemiesInThisWave:
+    - Name: Bot1
+      Prefab: {fileID: 2015434656898269652, guid: e29d43f43cc5d82499dd9926e01847d3,
+        type: 3}
+      DropChance: 25
+    - Name: Bot2
+      Prefab: {fileID: 2015434656898269652, guid: 25a1b0efadb966e44889fce712c8ff8d,
+        type: 3}
+      DropChance: 75
+  - WaveName: 3
+    DurationSeconds: 20
+    SpawnInterval: 3
+    enemiesInThisWave:
+    - Name: Bot1
+      Prefab: {fileID: 2015434656898269652, guid: e29d43f43cc5d82499dd9926e01847d3,
+        type: 3}
+      DropChance: 25
+    - Name: Bot2
+      Prefab: {fileID: 2015434656898269652, guid: 25a1b0efadb966e44889fce712c8ff8d,
+        type: 3}
+      DropChance: 75
+  enableEndless: 0
+  victorySceneName: WinScene

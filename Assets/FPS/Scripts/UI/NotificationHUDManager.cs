@@ -14,15 +14,23 @@ namespace Unity.FPS.UI
 
         void Awake()
         {
+            // --- CORRECCIÓN MULTIPLAYER ---
+            // En lugar de asumir que el jugador existe, verificamos primero.
+
             PlayerWeaponsManager playerWeaponsManager = FindFirstObjectByType<PlayerWeaponsManager>();
-            DebugUtility.HandleErrorIfNullFindObject<PlayerWeaponsManager, NotificationHUDManager>(playerWeaponsManager,
-                this);
-            playerWeaponsManager.OnAddedWeapon += OnPickupWeapon;
+            if (playerWeaponsManager != null)
+            {
+                playerWeaponsManager.OnAddedWeapon += OnPickupWeapon;
+            }
+            // Si es null, no hacemos nada (evitamos el crash), así la UI sigue viva para las Waves.
 
             Jetpack jetpack = FindFirstObjectByType<Jetpack>();
-            DebugUtility.HandleErrorIfNullFindObject<Jetpack, NotificationHUDManager>(jetpack, this);
-            jetpack.OnUnlockJetpack += OnUnlockJetpack;
+            if (jetpack != null)
+            {
+                jetpack.OnUnlockJetpack += OnUnlockJetpack;
+            }
 
+            // Esto sí lo dejamos porque el EventManager es global
             EventManager.AddListener<ObjectiveUpdateEvent>(OnObjectiveUpdateEvent);
         }
 
@@ -43,8 +51,16 @@ namespace Unity.FPS.UI
             CreateNotification("Jetpack unlocked");
         }
 
+        // Esta es la función que llama el WavesManager
         public void CreateNotification(string text)
         {
+            // Protección extra: si el prefab no está asignado, avisa y sal.
+            if (NotificationPrefab == null || NotificationPanel == null)
+            {
+                Debug.LogWarning("NotificationHUDManager: Faltan referencias (Prefab o Panel) en el Inspector.");
+                return;
+            }
+
             GameObject notificationInstance = Instantiate(NotificationPrefab, NotificationPanel);
             notificationInstance.transform.SetSiblingIndex(0);
 
@@ -53,11 +69,23 @@ namespace Unity.FPS.UI
             {
                 toast.Initialize(text);
             }
+
+            // Debug para confirmar que el mensaje llegó
+            Debug.Log($"[Notification] Mostrando: {text}");
         }
 
         void OnDestroy()
         {
             EventManager.RemoveListener<ObjectiveUpdateEvent>(OnObjectiveUpdateEvent);
+
+            // Limpieza segura (por si acaso encontramos al player antes)
+            PlayerWeaponsManager playerWeaponsManager = FindFirstObjectByType<PlayerWeaponsManager>();
+            if (playerWeaponsManager != null)
+                playerWeaponsManager.OnAddedWeapon -= OnPickupWeapon;
+
+            Jetpack jetpack = FindFirstObjectByType<Jetpack>();
+            if (jetpack != null)
+                jetpack.OnUnlockJetpack -= OnUnlockJetpack;
         }
     }
 }
