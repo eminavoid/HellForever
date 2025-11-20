@@ -24,10 +24,10 @@ namespace Unity.FPS.Game
             else { Instance = this; DontDestroyOnLoad(gameObject); }
         }
 
-        // --- MÉTODOS QUE LLAMA HEALTH.CS ---
+        
         public void AddScore(int amount)
         {
-            // Suma al jugador local
+            
             int current = (int)(PhotonNetwork.LocalPlayer.CustomProperties["Score"] ?? 0);
             Hashtable props = new Hashtable { { "Score", current + amount } };
             PhotonNetwork.LocalPlayer.SetCustomProperties(props);
@@ -45,7 +45,7 @@ namespace Unity.FPS.Game
             _localRound++;
         }
 
-        // --- FINAL DE JUEGO: BUSCAR AL MEJOR Y SUBIR ---
+        
         public void ProcessEndGameAndSubmit()
         {
             StartCoroutine(SubmitBestScoresRoutine());
@@ -58,46 +58,58 @@ namespace Unity.FPS.Game
 
             Debug.Log("📊 Calculando mejores puntajes de la sala...");
 
-            // 1. ENCONTRAR MVP DE SCORE
-            // Ordenamos jugadores de mayor a menor puntaje
-            var bestScorePlayer = allPlayers.OrderByDescending(p => (int)(p.CustomProperties["Score"] ?? 0)).First();
-            int bestScoreValue = (int)(bestScorePlayer.CustomProperties["Score"] ?? 0);
+            
+            var bestScorePlayer = allPlayers.OrderByDescending(p => (int)(p.CustomProperties["Score"] ?? 0)).FirstOrDefault();
 
-            // Si YO soy el mejor (o hay empate y soy yo), YO subo el puntaje
-            if (bestScorePlayer == PhotonNetwork.LocalPlayer && bestScoreValue > 0)
+            if (bestScorePlayer != null)
             {
-                string name = PhotonNetwork.NickName;
-                bool done = false;
-                LootLockerSDKManager.SubmitScore(playerID, bestScoreValue, KEY_SCORE, name, (r) => { done = true; });
-                yield return new WaitUntil(() => done);
-                Debug.Log($"🏆 Subido TOP SCORE: {name} con {bestScoreValue}");
+                int bestScoreValue = (int)(bestScorePlayer.CustomProperties["Score"] ?? 0);
+
+                
+                if (bestScorePlayer == PhotonNetwork.LocalPlayer && bestScoreValue > 0)
+                {
+                    string name = PhotonNetwork.NickName;
+                   
+                    if (string.IsNullOrEmpty(name)) name = "Player " + PhotonNetwork.LocalPlayer.ActorNumber;
+
+                    bool done = false;
+                    
+                    LootLockerSDKManager.SubmitScore(playerID, bestScoreValue, KEY_SCORE, name, (r) => { done = true; });
+                    yield return new WaitUntil(() => done);
+                    Debug.Log($"🏆 Subido TOP SCORE: {name} con {bestScoreValue}");
+                }
             }
 
-            // 2. ENCONTRAR MVP DE KILLS
-            var bestKillsPlayer = allPlayers.OrderByDescending(p => (int)(p.CustomProperties["Kills"] ?? 0)).First();
-            int bestKillsValue = (int)(bestKillsPlayer.CustomProperties["Kills"] ?? 0);
+           
+            var bestKillsPlayer = allPlayers.OrderByDescending(p => (int)(p.CustomProperties["Kills"] ?? 0)).FirstOrDefault();
 
-            if (bestKillsPlayer == PhotonNetwork.LocalPlayer && bestKillsValue > 0)
+            if (bestKillsPlayer != null)
             {
-                string name = PhotonNetwork.NickName;
-                bool done = false;
-                LootLockerSDKManager.SubmitScore(playerID, bestKillsValue, KEY_KILLS, name, (r) => { done = true; });
-                yield return new WaitUntil(() => done);
-                Debug.Log($"🔫 Subido TOP KILLS: {name} con {bestKillsValue}");
+                int bestKillsValue = (int)(bestKillsPlayer.CustomProperties["Kills"] ?? 0);
+
+                if (bestKillsPlayer == PhotonNetwork.LocalPlayer && bestKillsValue > 0)
+                {
+                    string name = PhotonNetwork.NickName;
+                    if (string.IsNullOrEmpty(name)) name = "Player " + PhotonNetwork.LocalPlayer.ActorNumber;
+
+                    bool done = false;
+                    LootLockerSDKManager.SubmitScore(playerID, bestKillsValue, KEY_KILLS, name, (r) => { done = true; });
+                    yield return new WaitUntil(() => done);
+                    Debug.Log($"🔫 Subido TOP KILLS: {name} con {bestKillsValue}");
+                }
             }
 
-            // 3. SUBIR RONDAS (Solo Master Client, nombres de todos)
+            
             if (PhotonNetwork.IsMasterClient && _localRound > 0)
             {
                 string teamNames = string.Join(", ", allPlayers.Select(p => p.NickName));
+
                 bool done = false;
                 LootLockerSDKManager.SubmitScore(playerID, _localRound, KEY_ROUNDS, teamNames, (r) => { done = true; });
                 yield return new WaitUntil(() => done);
                 Debug.Log($"🛡️ Rondas subidas: {_localRound}");
 
-                // Notificar al WavesManager que termine
-                WavesManager wm = FindFirstObjectByType<WavesManager>();
-                if (wm != null) wm.LoadVictoryScene();
+            
             }
         }
     }

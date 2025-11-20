@@ -180,23 +180,25 @@ namespace Unity.FPS.Game
 
         private void EndGame()
         {
-            Debug.Log("🏆 JUEGO TERMINADO");
+            Debug.Log("🏆 JUEGO TERMINADO (VICTORIA)");
             isGameActive = false;
 
+            
             GameObject managers = GameObject.Find("_Managers");
             if (managers != null)
             {
                 managers.SendMessage("ProcessEndGameAndSubmit", SendMessageOptions.DontRequireReceiver);
             }
-            else
-            {
-                Debug.LogError("No encontré el objeto '_Managers'. Cargando victoria manual.");
-                LoadVictoryScene();
-            }
+
+           
+            StartCoroutine(WaitAndLoadVictory());
         }
 
-        public void LoadVictoryScene()
+        private IEnumerator WaitAndLoadVictory()
         {
+            
+            yield return new WaitForSeconds(3f);
+
             PhotonNetwork.LoadLevel(victorySceneName);
         }
     }
