@@ -211,6 +211,7 @@ MonoBehaviour:
   MaxHealth: 100
   CurrentHealth: 100
   Invincible: 0
+  PointsOnDeath: 1
   CriticalHealthRatio: 0.3
 --- !u!114 &3464315327790461765
 MonoBehaviour:

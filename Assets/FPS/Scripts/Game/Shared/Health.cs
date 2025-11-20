@@ -1,5 +1,4 @@
-﻿// Assets/FPS/Scripts/Game/Health.cs
-using Photon.Pun;
+﻿using Photon.Pun;
 using Unity.FPS.Ours;
 using UnityEngine;
 using UnityEngine.Events;
@@ -18,6 +17,10 @@ namespace Unity.FPS.Game
         [Tooltip("Si es true, no recibe daño")]
         public bool Invincible = false;
 
+        [Header("LootLocker")]
+        [Tooltip("Puntos que da al morir. 0 = Es un Jugador. >0 = Es un Enemigo.")]
+        public int PointsOnDeath = 0;
+
         [Header("Crítico")]
         [Tooltip("Umbral (0-1) para considerar vida crítica")]
         [Range(0f, 1f)] public float CriticalHealthRatio = 0.3f;
@@ -33,6 +36,7 @@ namespace Unity.FPS.Game
             CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
             m_IsDead = CurrentHealth <= 0f;
         }
+
         public void TakeDamage(float baseDamage, GameObject damageSource)
         {
             if (Invincible || m_IsDead) return;
@@ -44,7 +48,7 @@ namespace Unity.FPS.Game
 
                 if (isPlayerTarget)
                 {
-                    // Player: todos aplican el mismo cálculo local (mantiene powerups defensivos)
+                    // Player: todos aplican el mismo cálculo local
                     photonView.RPC(nameof(RPC_TakeDamage), RpcTarget.All, baseDamage, srcId);
                 }
                 else
@@ -65,6 +69,7 @@ namespace Unity.FPS.Game
                 ApplyDamageWithTargetMultipliers(baseDamage, damageSource);
             }
         }
+
         public void Heal(float amount)
         {
             if (amount <= 0f || m_IsDead) return;
@@ -78,6 +83,7 @@ namespace Unity.FPS.Game
                 ApplyHeal(amount);
             }
         }
+
         public void Kill()
         {
             if (m_IsDead) return;
@@ -88,26 +94,31 @@ namespace Unity.FPS.Game
             }
             else
             {
-                CommitDeath();
+                CommitDeath(null);
             }
         }
+
         public bool IsCritical()
         {
             if (MaxHealth <= 0f) return false;
             return (CurrentHealth / MaxHealth) <= CriticalHealthRatio;
         }
+
+        // --- RPCs ---
+
         [PunRPC]
         void RPC_TakeDamage(float baseDamage, int sourceViewId)
         {
             GameObject src = sourceViewId != 0 ? PhotonView.Find(sourceViewId)?.gameObject : null;
             ApplyDamageWithTargetMultipliers(baseDamage, src);
         }
+
         [PunRPC]
         void RPC_RequestDamage(float baseDamage, int sourceViewId)
         {
-            // Master reenvía a TODOS: así cada cliente aplica el mismo cálculo y dispara sus eventos
             photonView.RPC(nameof(RPC_TakeDamage), RpcTarget.All, baseDamage, sourceViewId);
         }
+
         [PunRPC]
         void RPC_Heal(float amount)
         {
@@ -117,8 +128,11 @@ namespace Unity.FPS.Game
         [PunRPC]
         void RPC_Kill()
         {
-            CommitDeath();
+            CommitDeath(null);
         }
+
+        // --- Lógica Interna ---
+
         void ApplyDamageWithTargetMultipliers(float baseDamage, GameObject damageSource)
         {
             if (Invincible || m_IsDead) return;
@@ -136,7 +150,8 @@ namespace Unity.FPS.Game
 
             if (CurrentHealth <= 0f && !m_IsDead)
             {
-                CommitDeath();
+                // Aquí pasamos quién nos mató
+                CommitDeath(damageSource);
             }
         }
 
@@ -152,18 +167,62 @@ namespace Unity.FPS.Game
                 OnHealed?.Invoke(applied);
         }
 
-        void CommitDeath()
+        // Modificado para aceptar quién mató (opcional)
+        void CommitDeath(GameObject damageSource = null)
         {
             if (m_IsDead) return;
             m_IsDead = true;
             CurrentHealth = 0f;
             OnDie?.Invoke();
+
+            // ============================================================
+            // INTEGRACIÓN LOOTLOCKER / SCOREMANAGER
+            // ============================================================
+            if (ScoreManager.Instance != null)
+            {
+                // CASO 1: PvE (Matar Enemigos)
+                // Si tiene puntos y soy el Host, sumo puntos globales.
+                if (PointsOnDeath > 0 && PhotonNetwork.IsMasterClient)
+                {
+                    ScoreManager.Instance.AddScore(PointsOnDeath);
+                }
+
+                // CASO 2: PvP (Jugadores)
+                if (PointsOnDeath == 0)
+                {
+                    // A. Si soy YO quien murió, envío mis puntajes a la tabla
+                    if (photonView.IsMine)
+                    {
+                        ScoreManager.Instance.SubmitToLeaderboard();
+                    }
+
+                    // B. Si alguien me mató, le doy el crédito (Top Kills)
+                    if (damageSource != null)
+                    {
+                        PhotonView killerView = damageSource.GetComponent<PhotonView>();
+
+                        // Si el asesino es válido y no es un suicidio
+                        if (killerView != null && killerView.gameObject != gameObject)
+                        {
+                            // Buscamos el script PlayerKillHandler en el asesino
+                            var killHandler = killerView.GetComponent<PlayerKillHandler>();
+                            if (killHandler != null)
+                            {
+                                // RPC al dueño del asesino: "Hey, sumate una kill"
+                                killHandler.photonView.RPC("AddKillRPC", killerView.Owner);
+                            }
+                        }
+                    }
+                }
+            }
+            // ============================================================
         }
+
         float GetDamageTakenMultiplier(GameObject damageSource)
         {
             float mul = 1f;
             var mods = GetComponent<Unity.FPS.Ours.PlayerGameplayModifiers>();
-            if (mods != null) mul *= mods.DamageTakenMultiplier; 
+            if (mods != null) mul *= mods.DamageTakenMultiplier;
             return mul;
         }
 
@@ -187,10 +246,14 @@ namespace Unity.FPS.Game
                 m_IsDead = (bool)stream.ReceiveNext();
             }
         }
+
         public bool CanPickup()
         {
             return !m_IsDead && CurrentHealth < MaxHealth;
         }
+
+        // --- Métodos de Compatibilidad ---
+
         public void RespawnFull()
         {
             if (PhotonNetwork.IsConnected)
@@ -210,15 +273,13 @@ namespace Unity.FPS.Game
             m_IsDead = false;
             float prev = CurrentHealth;
             CurrentHealth = MaxHealth;
-
             OnHealed?.Invoke(CurrentHealth - prev);
-
             Invincible = false;
         }
+
         public void Revive()
         {
             m_IsDead = false;
         }
-
     }
 }
