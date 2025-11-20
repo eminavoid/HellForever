@@ -2,20 +2,21 @@
 using Unity.FPS.Game;
 using Unity.FPS.Ours;
 using UnityEngine;
-using Photon.Pun; // 👈 networking
+using Photon.Pun;
 
 namespace Unity.FPS.Gameplay
 {
-    public class ProjectileStandard : ProjectileBase, IHasDamageMultiplier
+
+    public class ProjectileStandard : ProjectileBase, IHasDamageMultiplier, IPunInstantiateMagicCallback
     {
         [Header("General")]
         [Tooltip("Radius of this projectile's collision detection")]
         public float Radius = 0.01f;
 
-        [Tooltip("Transform representing the root of the projectile (used for accurate collision detection)")]
+        [Tooltip("Transform representing the root of the projectile")]
         public Transform Root;
 
-        [Tooltip("Transform representing the tip of the projectile (used for accurate collision detection)")]
+        [Tooltip("Transform representing the tip of the projectile")]
         public Transform Tip;
 
         [Tooltip("LifeTime of the projectile")]
@@ -43,8 +44,7 @@ namespace Unity.FPS.Gameplay
         [Tooltip("Downward acceleration from gravity")]
         public float GravityDownAcceleration = 0f;
 
-        [Tooltip(
-            "Distance over which the projectile will correct its course to fit the intended trajectory (used to drift projectiles towards center of screen in First Person view). At values under 0, there is no correction")]
+        [Tooltip("Distance over which the projectile will correct its course")]
         public float TrajectoryCorrectionDistance = -1;
 
         [Tooltip("Determines if the projectile inherits the velocity that the weapon's muzzle had when firing")]
@@ -54,7 +54,7 @@ namespace Unity.FPS.Gameplay
         [Tooltip("Damage of the projectile")]
         public float Damage = 40f;
 
-        [Tooltip("Area of damage. Keep empty if you don<t want area damage")]
+        [Tooltip("Area of damage. Keep empty if you don't want area damage")]
         public DamageArea AreaOfDamage;
 
         [Header("Debug")]
@@ -83,20 +83,39 @@ namespace Unity.FPS.Gameplay
             DebugUtility.HandleErrorIfNullGetComponent<ProjectileBase, ProjectileStandard>(m_ProjectileBase, this, gameObject);
 
             m_ProjectileBase.OnShoot += OnShoot;
-
-            // Vida de la bala (el OWNER la destruye por red)
             _life = MaxLifeTime;
         }
 
         void OnDisable()
         {
-            // evitar duplicar suscripciones si se recicla
             if (m_ProjectileBase != null)
                 m_ProjectileBase.OnShoot -= OnShoot;
         }
 
+
+
+        public void OnPhotonInstantiate(PhotonMessageInfo info)
+        {
+            object[] data = info.photonView.InstantiationData;
+            if (data != null && data.Length >= 3)
+            {
+
+                Vector3 direction = new Vector3((float)data[0], (float)data[1], (float)data[2]);
+
+
+                m_Velocity = direction.normalized * Speed;
+
+
+                transform.forward = direction.normalized;
+
+                m_LastRootPosition = Root.position;
+            }
+        }
+
+
         new void OnShoot()
         {
+
             m_ShootTime = Time.time;
             m_LastRootPosition = Root.position;
             m_Velocity = transform.forward * Speed;
@@ -105,14 +124,13 @@ namespace Unity.FPS.Gameplay
             if (InheritWeaponVelocity)
                 transform.position += m_ProjectileBase.InheritedMuzzleVelocity * Time.deltaTime;
 
-            // Ignorar colisionar con el dueño
             if (m_ProjectileBase.Owner != null)
             {
                 Collider[] ownerColliders = m_ProjectileBase.Owner.GetComponentsInChildren<Collider>();
                 m_IgnoredColliders.AddRange(ownerColliders);
             }
 
-            // Si el dueño es un Player, aplicar corrección de trayectoria
+
             PlayerWeaponsManager playerWeaponsManager = m_ProjectileBase.Owner
                 ? m_ProjectileBase.Owner.GetComponent<PlayerWeaponsManager>()
                 : null;
@@ -120,7 +138,6 @@ namespace Unity.FPS.Gameplay
             if (playerWeaponsManager)
             {
                 m_HasTrajectoryOverride = true;
-
                 Vector3 cameraToMuzzle = (m_ProjectileBase.InitialPosition - playerWeaponsManager.WeaponCamera.transform.position);
                 m_TrajectoryCorrectionVector = Vector3.ProjectOnPlane(
                     -cameraToMuzzle, playerWeaponsManager.WeaponCamera.transform.forward);
@@ -135,7 +152,6 @@ namespace Unity.FPS.Gameplay
                     m_HasTrajectoryOverride = false;
                 }
 
-                // Evitar spawn dentro de pared
                 if (Physics.Raycast(playerWeaponsManager.WeaponCamera.transform.position, cameraToMuzzle.normalized,
                     out RaycastHit hit, cameraToMuzzle.magnitude, HittableLayers, k_TriggerInteraction))
                 {
@@ -147,35 +163,39 @@ namespace Unity.FPS.Gameplay
 
         void Update()
         {
-            // Solo el OWNER mueve y detecta impactos; el resto interpola con PhotonTransformView
+
+
+            transform.position += m_Velocity * Time.deltaTime;
+
+            if (InheritWeaponVelocity)
+                transform.position += m_ProjectileBase.InheritedMuzzleVelocity * Time.deltaTime;
+
+
+            if (m_Velocity != Vector3.zero)
+                transform.forward = m_Velocity.normalized;
+
+
+            if (GravityDownAcceleration > 0)
+                m_Velocity += Vector3.down * GravityDownAcceleration * Time.deltaTime;
+
+            if (m_HasTrajectoryOverride && m_ConsumedTrajectoryCorrectionVector.sqrMagnitude < m_TrajectoryCorrectionVector.sqrMagnitude)
+            {
+                Vector3 correctionLeft = m_TrajectoryCorrectionVector - m_ConsumedTrajectoryCorrectionVector;
+                float distanceThisFrame = (Root.position - m_LastRootPosition).magnitude;
+                Vector3 correctionThisFrame = (distanceThisFrame / TrajectoryCorrectionDistance) * m_TrajectoryCorrectionVector;
+                correctionThisFrame = Vector3.ClampMagnitude(correctionThisFrame, correctionLeft.magnitude);
+                m_ConsumedTrajectoryCorrectionVector += correctionThisFrame;
+
+                if (m_ConsumedTrajectoryCorrectionVector.sqrMagnitude == m_TrajectoryCorrectionVector.sqrMagnitude)
+                    m_HasTrajectoryOverride = false;
+
+                transform.position += correctionThisFrame;
+            }
+
+
+
             if (photonView.IsMine)
             {
-                // Mover
-                transform.position += m_Velocity * Time.deltaTime;
-                if (InheritWeaponVelocity)
-                    transform.position += m_ProjectileBase.InheritedMuzzleVelocity * Time.deltaTime;
-
-                // Deriva hacia corrección de trayectoria
-                if (m_HasTrajectoryOverride && m_ConsumedTrajectoryCorrectionVector.sqrMagnitude < m_TrajectoryCorrectionVector.sqrMagnitude)
-                {
-                    Vector3 correctionLeft = m_TrajectoryCorrectionVector - m_ConsumedTrajectoryCorrectionVector;
-                    float distanceThisFrame = (Root.position - m_LastRootPosition).magnitude;
-                    Vector3 correctionThisFrame = (distanceThisFrame / TrajectoryCorrectionDistance) * m_TrajectoryCorrectionVector;
-                    correctionThisFrame = Vector3.ClampMagnitude(correctionThisFrame, correctionLeft.magnitude);
-                    m_ConsumedTrajectoryCorrectionVector += correctionThisFrame;
-
-                    if (m_ConsumedTrajectoryCorrectionVector.sqrMagnitude == m_TrajectoryCorrectionVector.sqrMagnitude)
-                        m_HasTrajectoryOverride = false;
-
-                    transform.position += correctionThisFrame;
-                }
-
-                // Orientación y gravedad
-                transform.forward = m_Velocity.normalized;
-                if (GravityDownAcceleration > 0)
-                    m_Velocity += Vector3.down * GravityDownAcceleration * Time.deltaTime;
-
-                // Detección de impacto (spherecast entre posiciones)
                 RaycastHit closestHit = new RaycastHit { distance = Mathf.Infinity };
                 bool foundHit = false;
 
@@ -202,18 +222,20 @@ namespace Unity.FPS.Gameplay
                     }
                     OnHit(closestHit.point, closestHit.normal, closestHit.collider);
                 }
+            }
 
-                m_LastRootPosition = Root.position;
 
-                // Vida
-                _life -= Time.deltaTime;
-                if (_life <= 0f)
-                {
-                    if (PhotonNetwork.IsConnected)
-                        PhotonNetwork.Destroy(gameObject);
-                    else
-                        Destroy(gameObject);
-                }
+            m_LastRootPosition = Root.position;
+
+
+
+            _life -= Time.deltaTime;
+            if (_life <= 0f && photonView.IsMine)
+            {
+                if (PhotonNetwork.IsConnected)
+                    PhotonNetwork.Destroy(gameObject);
+                else
+                    Destroy(gameObject);
             }
         }
 
@@ -233,15 +255,16 @@ namespace Unity.FPS.Gameplay
 
         void OnHit(Vector3 point, Vector3 normal, Collider collider)
         {
+            
             float baseDamage = Damage;
             float finalDamage = baseDamage * _damageMultiplier;
 
-            if (AreaOfDamage) // AOE
+            if (AreaOfDamage)
             {
                 AreaOfDamage.InflictDamageInArea(
                     finalDamage, point, HittableLayers, k_TriggerInteraction, m_ProjectileBase.Owner);
             }
-            else // impacto puntual
+            else
             {
                 Damageable damageable = collider.GetComponent<Damageable>();
                 if (damageable)
@@ -250,7 +273,27 @@ namespace Unity.FPS.Gameplay
                 }
             }
 
-            // VFX/SFX locales (si querés que TODOS vean VFX, podés hacer un RPC y spawnearlos en cada cliente)
+
+
+            if (ImpactVfx)
+            {
+
+                photonView.RPC(nameof(SpawnImpactVFX), RpcTarget.All, point, normal);
+            }
+
+            if (ImpactSfxClip)
+                AudioUtility.CreateSFX(ImpactSfxClip, point, AudioUtility.AudioGroups.Impact, 1f, 3f);
+
+            // Destruir la bala
+            if (PhotonNetwork.IsConnected)
+                PhotonNetwork.Destroy(gameObject);
+            else
+                Destroy(gameObject);
+        }
+
+        [PunRPC]
+        void SpawnImpactVFX(Vector3 point, Vector3 normal)
+        {
             if (ImpactVfx)
             {
                 GameObject impactVfxInstance = Instantiate(ImpactVfx, point + (normal * ImpactVfxSpawnOffset),
@@ -258,15 +301,6 @@ namespace Unity.FPS.Gameplay
                 if (ImpactVfxLifetime > 0)
                     Destroy(impactVfxInstance.gameObject, ImpactVfxLifetime);
             }
-
-            if (ImpactSfxClip)
-                AudioUtility.CreateSFX(ImpactSfxClip, point, AudioUtility.AudioGroups.Impact, 1f, 3f);
-
-            // Destruir la bala para TODOS
-            if (PhotonNetwork.IsConnected)
-                PhotonNetwork.Destroy(gameObject);
-            else
-                Destroy(gameObject);
         }
 
         void OnDrawGizmosSelected()
