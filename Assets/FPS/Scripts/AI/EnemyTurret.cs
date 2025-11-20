@@ -5,7 +5,7 @@ using Photon.Pun;
 namespace Unity.FPS.AI
 {
     [RequireComponent(typeof(EnemyController))]
-    public class EnemyTurret : MonoBehaviour
+    public class EnemyTurret : MonoBehaviourPun, IPunObservable
     {
         public enum AIState { Idle, Attack }
 
@@ -31,6 +31,8 @@ namespace Unity.FPS.AI
         Quaternion m_PreviousPivotAimingRotation;
         Quaternion m_PivotAimingRotation;
 
+        private Quaternion m_NetworkPivotRotation;
+
         const string k_AnimOnDamagedParameter = "OnDamaged";
         const string k_AnimIsActiveParameter = "IsActive";
 
@@ -53,28 +55,59 @@ namespace Unity.FPS.AI
 
             m_TimeStartedDetection = Mathf.NegativeInfinity;
             m_PreviousPivotAimingRotation = TurretPivot.rotation;
+
+            m_NetworkPivotRotation = TurretPivot.localRotation;
         }
 
         void Update()
         {
-            // Solo el Master calcula/actualiza lógica de apuntado y disparo
             if (PhotonNetwork.IsConnected && !PhotonNetwork.IsMasterClient) return;
             UpdateCurrentAiState();
         }
 
         void LateUpdate()
         {
-            // Solo el Master escribe la rotación del pivot (los demás la reciben por PhotonTransformView del hijo)
-            if (PhotonNetwork.IsConnected && !PhotonNetwork.IsMasterClient) return;
-            UpdateTurretAiming();
+            if (PhotonNetwork.IsMasterClient)
+            {
+                UpdateTurretAiming();
+
+                if (AiState == AIState.Attack && TurretPivot != null)
+                {
+                    TurretPivot.rotation = m_PivotAimingRotation;
+                }
+            }
+            else
+            {
+                if (TurretPivot != null)
+                {
+                    TurretPivot.localRotation = Quaternion.Slerp(
+                        TurretPivot.localRotation,
+                        m_NetworkPivotRotation,
+                        Time.deltaTime * AimRotationSharpness
+                    );
+                }
+            }
         }
 
+        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+        {
+            if (stream.IsWriting)
+            {
+                stream.SendNext(TurretPivot.localRotation);
+            }
+            else
+            {
+                m_NetworkPivotRotation = (Quaternion)stream.ReceiveNext();
+            }
+        }
         void UpdateCurrentAiState()
         {
             switch (AiState)
             {
                 case AIState.Attack:
                     bool mustShoot = Time.time > m_TimeStartedDetection + DetectionFireDelay;
+
+                    if (m_EnemyController.KnownDetectedTarget == null) return;
 
                     Vector3 directionToTarget =
                         (m_EnemyController.KnownDetectedTarget.transform.position - TurretAimPoint.position).normalized;
@@ -104,7 +137,7 @@ namespace Unity.FPS.AI
             switch (AiState)
             {
                 case AIState.Attack:
-                    TurretPivot.rotation = m_PivotAimingRotation; // <- esto lo sincroniza el PTView del hijo
+                    TurretPivot.rotation = m_PivotAimingRotation;
                     break;
                 default:
                     TurretPivot.rotation = Quaternion.Slerp(
@@ -120,14 +153,12 @@ namespace Unity.FPS.AI
 
         void OnDamaged(float dmg, GameObject source)
         {
-            // VFX locales para todos
             if (RandomHitSparks.Length > 0)
             {
                 int n = Random.Range(0, RandomHitSparks.Length - 1);
                 RandomHitSparks[n].Play();
             }
 
-            // El trigger del Animator lo dispara SOLO el Master; se replica por PhotonAnimatorView
             if (!PhotonNetwork.IsConnected || PhotonNetwork.IsMasterClient)
             {
                 Animator.SetTrigger(k_AnimOnDamagedParameter);
@@ -139,7 +170,6 @@ namespace Unity.FPS.AI
             if (AiState == AIState.Idle)
                 AiState = AIState.Attack;
 
-            // Estos VFX/SFX pueden quedar solo en Master; la anim IsActive se replica por AnimatorView
             for (int i = 0; i < OnDetectVfx.Length; i++)
                 OnDetectVfx[i].Play();
 
