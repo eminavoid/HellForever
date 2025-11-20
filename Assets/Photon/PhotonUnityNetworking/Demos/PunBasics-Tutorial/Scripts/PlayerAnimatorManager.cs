@@ -1,3 +1,13 @@
+// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="PlayerAnimatorManager.cs" company="Exit Games GmbH">
+//   Part of: Photon Unity Networking Demos
+// </copyright>
+// <summary>
+//  Used in PUN Basics Tutorial to deal with the networked player Animator Component controls.
+// </summary>
+// <author>developer@exitgames.com</author>
+// --------------------------------------------------------------------------------------------------------------------
+
 using UnityEngine;
 
 namespace Photon.Pun.Demo.PunBasics
