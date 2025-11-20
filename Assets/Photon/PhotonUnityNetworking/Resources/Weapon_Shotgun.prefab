@@ -177,8 +177,8 @@ MonoBehaviour:
   EjectionPort: {fileID: 0}
   ShellCasingEjectionForce: 2
   ShellPoolSize: 1
-  AmmoReloadRate: 1.1
-  AmmoReloadDelay: 1
+  AmmoReloadRate: 2
+  AmmoReloadDelay: 0.5
   MaxAmmo: 2
   AutomaticReleaseOnCharged: 0
   MaxChargeDuration: 1
@@ -330,7 +330,8 @@ MonoBehaviour:
   Synchronization: 3
   OwnershipTransfer: 0
   observableSearch: 2
-  ObservedComponents: []
+  ObservedComponents:
+  - {fileID: -7753876366180013505}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0

@@ -2,44 +2,77 @@
 using Photon.Pun;
 using UnityEngine.Rendering;
 
-public class PlayerAnimationController : MonoBehaviourPun
+namespace Unity.FPS.Game
 {
-    [Header("References")]
-    public Animator animator;
-    public CharacterController cc;
-
-    [Header("Ocultar cuerpo local (FPS)")]
-    public SkinnedMeshRenderer[] meshesToHide;
-
-    void Start()
+    public class PlayerAnimationController : MonoBehaviourPun
     {
-        // Si este player es el local → ocultamos su cuerpo
-        if (photonView.IsMine)
+        [Header("References")]
+        public Animator animator;
+        public CharacterController cc;
+
+        [Header("Ocultar cuerpo local (FPS)")]
+        public SkinnedMeshRenderer[] meshesToHide;
+
+        void Start()
+        {
+            // Lo llamamos al inicio
+            ApplyLocalBodyVisibility();
+        }
+
+        // Usamos LateUpdate para "ganarle" a cualquier otro script que intente
+        // activar las meshes al revivir.
+        void LateUpdate()
+        {
+            // Solo nos importa si es MI jugador local
+            if (!photonView.IsMine) return;
+
+            // Forzamos que se oculten en cada frame antes de renderizar
+            ForceHideLocalMeshes();
+
+            // Actualizar animaciones (si es necesario hacerlo aquí o en Update)
+            UpdateAnimations();
+        }
+
+        void ForceHideLocalMeshes()
         {
             foreach (var mesh in meshesToHide)
             {
                 if (mesh == null) continue;
 
-                // Opción A: ocultar completamente el cuerpo
-                 mesh.enabled = false;
 
-                // Opción B: el mesh sigue existiendo pero solo proyecta sombras
-                //mesh.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+                if (mesh.enabled)
+                {
+                    mesh.enabled = false;
+
+
+                }
             }
         }
-    }
 
-    void Update()
-    {
-        // Solo el dueño actualiza sus animaciones
-        if (!photonView.IsMine) return;
+        void ApplyLocalBodyVisibility()
+        {
+            bool isLocal = photonView.IsMine;
 
-        // Calcular velocidad horizontal
-        Vector3 horizontal = new Vector3(cc.velocity.x, 0, cc.velocity.z);
-        float speed = horizontal.magnitude;
+            foreach (var mesh in meshesToHide)
+            {
+                if (mesh == null) continue;
 
-        // Pasar datos al Animator
-        animator.SetFloat("Speed", speed);
-        animator.SetBool("IsGrounded", cc.isGrounded);
+          
+                mesh.enabled = !isLocal;
+            }
+        }
+
+      
+        void UpdateAnimations()
+        {
+            if (animator == null || cc == null) return;
+
+ 
+            Vector3 horizontal = new Vector3(cc.velocity.x, 0, cc.velocity.z);
+            float speed = horizontal.magnitude;
+
+            animator.SetFloat("Speed", speed);
+            animator.SetBool("IsGrounded", cc.isGrounded);
+        }
     }
 }

@@ -193,6 +193,11 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1697405472602721765, guid: 31d97e822763d1f4cb769f7e3f7f7333,
+        type: 3}
+      propertyPath: ObservedComponents.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2164575948437375177, guid: 31d97e822763d1f4cb769f7e3f7f7333,
         type: 3}
       propertyPath: m_Layer
