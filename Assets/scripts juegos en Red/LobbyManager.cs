@@ -19,7 +19,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     [Header("Create Lobby")]
     public TMP_InputField roomNameInput;   
-    public TMP_Dropdown maxPlayersDropdown;   
+    public TMP_Dropdown maxPlayersDropdown;
+    public TMP_Dropdown mapSelectorDropdown;
 
     [Header("Lobby Browser")]
     public ScrollRect lobbyScrollView;
@@ -161,15 +162,18 @@ public void OnPlayerNameChanged(string newName)
         string maxPlayersString = maxPlayersDropdown.options[maxPlayersDropdown.value].text;
         byte maxPlayers = byte.Parse(maxPlayersString);
 
+        string mapSceneName = mapSelectorDropdown.options[mapSelectorDropdown.value].text;
+
         RoomOptions roomOptions = new RoomOptions();
         roomOptions.MaxPlayers = maxPlayers;
 
         roomOptions.CustomRoomProperties = new ExitGames.Client.Photon.Hashtable
         {
-            { "DisplayName", displayName }
+            { "DisplayName", displayName },
+            { "MapName", mapSceneName }
         };
 
-        roomOptions.CustomRoomPropertiesForLobby = new string[] { "DisplayName" };
+        roomOptions.CustomRoomPropertiesForLobby = new string[] { "DisplayName", "MapName" };
 
         string internalRoomName = "Room_" + System.Guid.NewGuid().ToString();
 
@@ -233,12 +237,16 @@ public void OnPlayerNameChanged(string newName)
             LobbyItem lobbyItem = lobbyItemGO.GetComponent<LobbyItem>();
 
             string displayName = info.Name;
-            if (info.CustomProperties.ContainsKey("DisplayName"))
-            {
-                displayName = (string)info.CustomProperties["DisplayName"];
-            }
+            string mapName = "Unknown Map";
 
-            string roomInfoText = $"{displayName}   ({info.PlayerCount} / {info.MaxPlayers})";
+            if (info.CustomProperties.ContainsKey("DisplayName"))
+                displayName = (string)info.CustomProperties["DisplayName"];
+
+            if (info.CustomProperties.ContainsKey("MapName"))
+                mapName = (string)info.CustomProperties["MapName"];
+
+            string roomInfoText = $"{displayName} [{mapName}]   ({info.PlayerCount} / {info.MaxPlayers})";
+
             lobbyItem.Initialize(this, info.Name, roomInfoText);
         }
     }
@@ -260,7 +268,18 @@ public void OnPlayerNameChanged(string newName)
         if (PhotonNetwork.CurrentRoom.PlayerCount == PhotonNetwork.CurrentRoom.MaxPlayers)
         {
             PhotonNetwork.CurrentRoom.IsOpen = false;
-            PhotonNetwork.LoadLevel(gameSceneName);
+
+
+            if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("MapName"))
+            {
+                string mapToLoad = (string)PhotonNetwork.CurrentRoom.CustomProperties["MapName"];
+                PhotonNetwork.LoadLevel(mapToLoad);
+            }
+            else
+            {
+                Debug.LogError("No se encontró mapa seleccionado, cargando default.");
+                PhotonNetwork.LoadLevel("GameScene");
+            }
         }
     }
 
