@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using Photon.Pun;
-using System;
 
 public class CoOpButton : MonoBehaviour
 {
@@ -10,8 +9,8 @@ public class CoOpButton : MonoBehaviour
     public int buttonID = 1;
 
     [Header("Interacción")]
-    public KeyCode interactKey = KeyCode.E;     
-    public GameObject interactPrompt;      
+    public KeyCode interactKey = KeyCode.E;
+    public GameObject interactPrompt;    
 
     private bool isPlayerInZone = false;
 
@@ -47,7 +46,7 @@ public class CoOpButton : MonoBehaviour
     {
         if (isPlayerInZone)
         {
-            if (Input.GetKey(interactKey))
+            if (Input.GetKeyDown(interactKey))
             {
                 if (Time.time - lastPressLocalTime > buttonCooldown)
                 {
@@ -62,7 +61,9 @@ public class CoOpButton : MonoBehaviour
     {
         if (targetDoor != null)
         {
-            targetDoor.photonView.RPC(nameof(LaserDoor.RPC_RegisteButtonPress), RpcTarget.All, buttonID, PhotonNetwork.Time);
+            targetDoor.photonView.RPC(nameof(LaserDoor.RPC_RegisterButtonPress), RpcTarget.All, buttonID, PhotonNetwork.Time);
+
+            Debug.Log("Botón presionado, señal enviada.");
         }
     }
 }

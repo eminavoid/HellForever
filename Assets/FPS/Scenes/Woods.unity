@@ -96431,7 +96431,7 @@ PrefabInstance:
     - target: {fileID: 2497406903890568550, guid: 7ba64c0944716c24f911914e2e6af7a4,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.39999372
+      value: -0.40000007
       objectReference: {fileID: 0}
     - target: {fileID: 2497406903890568550, guid: 7ba64c0944716c24f911914e2e6af7a4,
         type: 3}
@@ -100964,7 +100964,7 @@ PrefabInstance:
     - target: {fileID: 2497406903890568550, guid: 7ba64c0944716c24f911914e2e6af7a4,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -28.40679
+      value: -28.406797
       objectReference: {fileID: 0}
     - target: {fileID: 2497406903890568550, guid: 7ba64c0944716c24f911914e2e6af7a4,
         type: 3}
@@ -153481,10 +153481,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d383bb02e388b554881faa7b7cf8390c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  laserDoors:
+  doors:
   - {fileID: 697238169}
   - {fileID: 730055672}
-  maxTimeDifferece: 1
+  maxTimeDifference: 1
 --- !u!114 &1103684546
 MonoBehaviour:
   m_ObjectHideFlags: 0

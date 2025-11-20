@@ -1,61 +1,61 @@
-using NUnit.Framework;
-using Photon.Pun;
-using System;
-using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
+using System.Collections.Generic;
 
-[RequireComponent(typeof(PhotonView))]
 public class LaserDoor : MonoBehaviourPun
 {
-    public List<GameObject> laserDoors;
+    [Header("Visuals")]
+    public List<GameObject> doors;
 
-    public double maxTimeDifferece = 0.2;
+    [Header("Configuración de Timing")]
+    [Tooltip("Tiempo máximo de diferencia entre los dos clicks (en segundos).")]
+    public double maxTimeDifference = 0.2f;            
 
     private double lastTimeButton1 = -1;
     private double lastTimeButton2 = -1;
 
     [PunRPC]
-    public void RPC_RegisteButtonPress(int buttonID, double serverTime)
+    public void RPC_RegisterButtonPress(int buttonID, double serverTime)
     {
-        Debug.Log($"Button {buttonID} pressed at server time {serverTime}");
+        Debug.Log($"Botón {buttonID} presionado en tiempo server: {serverTime}");
 
-        if (buttonID == 1)
-        {
-            lastTimeButton1 = serverTime;
-        }
-        else if (buttonID == 2)
-        {
-            lastTimeButton2 = serverTime;
-        }
-        else
-        {
-            Debug.LogWarning($"Unknown button ID: {buttonID}");
-            return;
-        }
+        if (buttonID == 1) lastTimeButton1 = serverTime;
+        else if (buttonID == 2) lastTimeButton2 = serverTime;
+
+        CheckSync();
     }
+
     private void CheckSync()
     {
-        if (lastTimeButton1 < 0 || lastTimeButton2 < 0)
-        {
-            return;
-        }
-        
-        double timeDiff = System.Math.Abs(lastTimeButton1 - lastTimeButton2);
-        Debug.Log($"Dif de tiempo: {timeDiff} segs");
+        // Si falta algún botón por presionar, no hacemos nada
+        if (lastTimeButton1 < 0 || lastTimeButton2 < 0) return;
 
-        if (timeDiff <= maxTimeDifferece)
+        double timeDiff = System.Math.Abs(lastTimeButton1 - lastTimeButton2);
+
+        // --- LOG DE DEPURACIÓN MEJORADO ---
+        Debug.LogWarning($"? CALCULO DE TIEMPO:\n" +
+                         $"Diferencia Real: {timeDiff.ToString("F4")} segs\n" +
+                         $"Máximo Permitido: {maxTimeDifference.ToString("F4")} segs\n" +
+                         $"¿Se abre?: {(timeDiff <= maxTimeDifference)}");
+        // ----------------------------------
+
+        if (timeDiff <= maxTimeDifference)
         {
             OpenDoor();
+            // Reseteamos los tiempos para que no se vuelva a abrir sola si la cierras
+            lastTimeButton1 = -1;
+            lastTimeButton2 = -1;
         }
         else
         {
-            Debug.Log("Buttons not pressed in sync.");
+            Debug.LogError(" FALLO: Los botones no se presionaron suficientemente rápido.");
         }
     }
 
     private void OpenDoor()
     {
-        foreach (GameObject door in laserDoors)
+        Debug.Log("¡Sincronización EXITOSA! Puerta abierta.");
+        foreach (var door in doors)
         {
             door.SetActive(false);
         }
