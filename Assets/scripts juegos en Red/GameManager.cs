@@ -2,7 +2,7 @@
 using Photon.Pun;
 using Photon.Realtime;
 using ExitGames.Client.Photon;
-using System.Collections;    
+using System.Collections;
 using System.Collections.Generic;
 using Unity.FPS.Game;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public Transform spawnPoint;
 
     [Header("Migration UI")]
-    public GameObject migrationPanel;       
+    public GameObject migrationPanel;
     public float migrationPauseDuration = 3.0f;
     private const string PLAYER_LOADED_KEY = "PlayerLoaded";
     private HashSet<int> _deadPlayers = new HashSet<int>();
@@ -104,6 +104,31 @@ public class GameManager : MonoBehaviourPunCallbacks
     public void RPC_StartGame()
     {
         PhotonNetwork.Instantiate(playerPrefabName, spawnPoint.position, spawnPoint.rotation);
+    }
+
+    #endregion
+
+    #region Player Disconnect / Waves Reset
+
+    // 🔹 NUEVO: cuando cualquier jugador se va de la sala
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        Debug.Log($"[GAME] Player left room: {otherPlayer.NickName}");
+
+        // Solo el master decide qué hacer con las olas
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        // Buscar WavesManager en la escena y resetear al checkpoint de la última ola
+        var waves = FindFirstObjectByType<WavesManager>();
+        if (waves != null)
+        {
+            Debug.Log("[GAME] Reiniciando WavesManager por desconexión de un jugador.");
+            waves.ForceRestartFromSavedWave();
+        }
+        else
+        {
+            Debug.LogWarning("[GAME] No se encontró WavesManager en la escena.");
+        }
     }
 
     #endregion

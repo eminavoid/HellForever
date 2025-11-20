@@ -1,10 +1,11 @@
 ﻿using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.FPS.ours;
-using System.Linq;
-using System; // <--- 1. ESTE USING ES OBLIGATORIO PARA QUE FUNCIONE EL EVENTO
+using System;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace Unity.FPS.Game
 {
@@ -41,11 +42,15 @@ namespace Unity.FPS.Game
         private readonly List<EnemySpawner> spawners = new();
         private bool isGameActive = false;
 
-        // --- 2. ESTA ES LA LÍNEA QUE TE FALTA Y CAUSA EL ERROR ---
         public static event Action<int, int> OnWaveChanged;
-        // ---------------------------------------------------------
 
-        // Compatibilidad con ObjectiveKillEnemies
+        // 🔹 NUEVO: índice actual de ola y referencia al loop
+        private int currentWaveIndex = 0;
+        private Coroutine gameLoopCoroutine;
+
+        // 🔹 NUEVO: clave usada en las CustomProperties de la room
+        private const string ROOM_WAVE_INDEX_KEY = "CurrentWaveIndex";
+
         public int WavesCount => wavesList.Count;
         public void WaveExecute() { }
 
@@ -63,10 +68,69 @@ namespace Unity.FPS.Game
         {
             yield return new WaitUntil(() => PhotonNetwork.InRoom && PhotonNetwork.IsConnected);
 
-            if (PhotonNetwork.IsMasterClient)
+            // 🔹 ahora usamos un método que tiene en cuenta el checkpoint
+            StartGameLoopIfMaster();
+        }
+
+        // 🔹 NUEVO: lógica para arrancar el loop solo en el Master y desde la ola guardada
+        private void StartGameLoopIfMaster()
+        {
+            if (!PhotonNetwork.IsMasterClient) return;
+            if (gameLoopCoroutine != null) return; // ya está corriendo
+
+            // Leer ola desde las CustomProperties de la sala (si existe)
+            if (PhotonNetwork.CurrentRoom != null &&
+                PhotonNetwork.CurrentRoom.CustomProperties != null &&
+                PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(ROOM_WAVE_INDEX_KEY, out object waveObj))
             {
-                StartCoroutine(GameLoop());
+                currentWaveIndex = (int)waveObj;
             }
+            else
+            {
+                currentWaveIndex = 0;
+            }
+
+            gameLoopCoroutine = StartCoroutine(GameLoop());
+        }
+
+        // 🔹 NUEVO: cuando cambia el MasterClient, el nuevo Master reanuda las oleadas
+        public override void OnMasterClientSwitched(Player newMasterClient)
+        {
+            // Solo el nuevo master debe relanzar el loop
+            if (!PhotonNetwork.IsMasterClient) return;
+
+            Debug.Log("[WavesManager] Nuevo Master, reanudando oleadas desde el checkpoint...");
+
+            if (gameLoopCoroutine != null)
+            {
+                StopCoroutine(gameLoopCoroutine);
+                gameLoopCoroutine = null;
+            }
+
+            StartGameLoopIfMaster();
+        }
+
+        // 🔹 NUEVO: método público para forzar un reset a la última ola guardada
+        public void ForceRestartFromSavedWave()
+        {
+            if (!PhotonNetwork.IsMasterClient) return;
+
+            // Releer por las dudas el índice guardado en la room
+            if (PhotonNetwork.CurrentRoom != null &&
+                PhotonNetwork.CurrentRoom.CustomProperties != null &&
+                PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(ROOM_WAVE_INDEX_KEY, out object waveObj))
+            {
+                currentWaveIndex = (int)waveObj;
+            }
+
+            if (gameLoopCoroutine != null)
+            {
+                StopCoroutine(gameLoopCoroutine);
+                gameLoopCoroutine = null;
+            }
+
+            Debug.Log($"[WavesManager] Reiniciando GameLoop desde la ola {currentWaveIndex + 1}");
+            StartGameLoopIfMaster();
         }
 
         private IEnumerator GameLoop()
@@ -78,11 +142,24 @@ namespace Unity.FPS.Game
             }
 
             isGameActive = true;
-            Debug.Log("🎮 INICIO DEL JUEGO");
+            Debug.Log(" INICIO DEL JUEGO");
 
             // FASE 1: OLEADAS NORMALES
-            for (int i = 0; i < wavesList.Count; i++)
+            // 🔹 IMPORTANTE: arrancamos desde currentWaveIndex (checkpoint)
+            for (int i = currentWaveIndex; i < wavesList.Count; i++)
             {
+                currentWaveIndex = i;
+
+                // 🔹 Guardar el índice de la ola actual en las CustomProperties de la sala
+                if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom != null)
+                {
+                    Hashtable props = new Hashtable
+                    {
+                        { ROOM_WAVE_INDEX_KEY, currentWaveIndex }
+                    };
+                    PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+                }
+
                 // Disparar evento
                 OnWaveChanged?.Invoke(i + 1, wavesList.Count);
 
@@ -119,6 +196,8 @@ namespace Unity.FPS.Game
             {
                 EndGame();
             }
+
+            gameLoopCoroutine = null; // por las dudas
         }
 
         private IEnumerator RunSingleWave(WaveSettings currentWave)
@@ -183,22 +262,18 @@ namespace Unity.FPS.Game
             Debug.Log("🏆 JUEGO TERMINADO (VICTORIA)");
             isGameActive = false;
 
-            
             GameObject managers = GameObject.Find("_Managers");
             if (managers != null)
             {
                 managers.SendMessage("ProcessEndGameAndSubmit", SendMessageOptions.DontRequireReceiver);
             }
 
-           
             StartCoroutine(WaitAndLoadVictory());
         }
 
         private IEnumerator WaitAndLoadVictory()
         {
-            
             yield return new WaitForSeconds(3f);
-
             PhotonNetwork.LoadLevel(victorySceneName);
         }
     }
