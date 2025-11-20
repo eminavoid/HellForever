@@ -55,6 +55,7 @@ MonoBehaviour:
   - RPC_SetButtonState
   - RPC_RegisteButtonPress
   - RPC_RegisterButtonPress
+  - AddKillRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
