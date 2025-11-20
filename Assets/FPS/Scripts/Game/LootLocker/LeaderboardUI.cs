@@ -47,25 +47,26 @@ namespace Unity.FPS.Game
                             // 1. RANK
                             texts[0].text = item.rank + ".";
 
-                            // 2. NOMBRE (LÓGICA ESPECIAL)
-                            if (key == "highestround" && !string.IsNullOrEmpty(item.metadata))
+                            // 2. NOMBRE (LA LÓGICA NUEVA)
+                            // Prioridad 1: Metadata (El nombre que enviamos manualmente)
+                            // Prioridad 2: Player Name (El nombre de cuenta LootLocker)
+                            // Prioridad 3: ID (Si todo falla)
+                            string displayName = "";
+
+                            if (!string.IsNullOrEmpty(item.metadata))
                             {
-                                // Si es la tabla de Rondas y tiene metadata, mostramos LOS NOMBRES DEL EQUIPO
-                                texts[1].text = item.metadata;
-                                // Ajustar tamaño de fuente si son muchos nombres
-                                texts[1].enableAutoSizing = true;
+                                displayName = item.metadata; // <--- ESTO SOLUCIONA TU PROBLEMA
+                            }
+                            else if (item.player != null && !string.IsNullOrEmpty(item.player.name))
+                            {
+                                displayName = item.player.name;
                             }
                             else
                             {
-                                // Si es Score o Kills, mostramos UN solo nombre
-                                string pName = "Unknown";
-                                if (item.player != null)
-                                    pName = !string.IsNullOrEmpty(item.player.name) ? item.player.name : item.player.id.ToString();
-                                else
-                                    pName = item.member_id;
-
-                                texts[1].text = pName;
+                                displayName = item.member_id;
                             }
+
+                            texts[1].text = displayName;
 
                             // 3. PUNTAJE
                             texts[2].text = item.score.ToString();

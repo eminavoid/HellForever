@@ -64,24 +64,28 @@ namespace Unity.FPS.Game
         {
             string playerID = PlayerPrefs.GetString("PlayerID", "Guest");
 
-           
+            // Obtenemos el nombre actual de Photon para "pegarlo" al puntaje
+            string myName = PhotonNetwork.NickName;
+            if (string.IsNullOrEmpty(myName)) myName = "Player " + Random.Range(100, 999);
+
+            // 1. CALCULAR MVP (Score)
             Player[] allPlayers = PhotonNetwork.PlayerList;
             var sortedByScore = allPlayers.OrderByDescending(p => (int)(p.CustomProperties["Score"] ?? 0)).ToArray();
 
-           
             if (sortedByScore[0] == PhotonNetwork.LocalPlayer)
             {
                 int myScore = (int)(PhotonNetwork.LocalPlayer.CustomProperties["Score"] ?? 0);
                 if (myScore > 0)
                 {
                     bool done = false;
-                    LootLockerSDKManager.SubmitScore(playerID, myScore, KEY_SCORE, (r) => { done = true; });
+                    // AQUÍ ESTÁ EL CAMBIO: Pasamos 'myName' como 4to argumento (metadata)
+                    LootLockerSDKManager.SubmitScore(playerID, myScore, KEY_SCORE, myName, (r) => { done = true; });
                     yield return new WaitUntil(() => done);
-                    Debug.Log("🏆 Soy el MVP de Score. Enviado: " + myScore);
+                    Debug.Log("🏆 Score enviado con nombre: " + myName);
                 }
             }
 
-            
+            // 2. CALCULAR MVP (Kills)
             var sortedByKills = allPlayers.OrderByDescending(p => (int)(p.CustomProperties["Kills"] ?? 0)).ToArray();
 
             if (sortedByKills[0] == PhotonNetwork.LocalPlayer)
@@ -90,23 +94,22 @@ namespace Unity.FPS.Game
                 if (myKills > 0)
                 {
                     bool done = false;
-                    LootLockerSDKManager.SubmitScore(playerID, myKills, KEY_KILLS, (r) => { done = true; });
+                    // AQUÍ ESTÁ EL CAMBIO: Pasamos 'myName' como metadata también
+                    LootLockerSDKManager.SubmitScore(playerID, myKills, KEY_KILLS, myName, (r) => { done = true; });
                     yield return new WaitUntil(() => done);
-                    Debug.Log("🔫 Soy el MVP de Kills. Enviado: " + myKills);
+                    Debug.Log("🔫 Kills enviadas con nombre: " + myName);
                 }
             }
 
-            
+            // 3. RONDAS (EQUIPO)
             if (PhotonNetwork.IsMasterClient && _localRound > 0)
             {
-               
                 string teamNames = string.Join(", ", allPlayers.Select(p => p.NickName));
 
                 bool done = false;
-                
                 LootLockerSDKManager.SubmitScore(playerID, _localRound, KEY_ROUNDS, teamNames, (r) => { done = true; });
                 yield return new WaitUntil(() => done);
-                Debug.Log("🛡️ Rondas de equipo enviadas con nombres: " + teamNames);
+                Debug.Log("🛡️ Rondas enviadas.");
             }
         }
     }
