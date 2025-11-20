@@ -3,7 +3,6 @@ using Unity.FPS.Game;
 
 public class DebugGameEnder : MonoBehaviour
 {
-    // Hacemos que este objeto no se destruya al cambiar de escena
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
@@ -11,21 +10,23 @@ public class DebugGameEnder : MonoBehaviour
 
     void Update()
     {
-        // Al presionar la tecla 'G'
         if (Input.GetKeyDown(KeyCode.G))
         {
-            Debug.LogWarning("🔴 [DEBUG] Tecla 'G' presionada. Forzando envío de puntajes...");
+            Debug.LogWarning("🔴 [DEBUG] Tecla 'G' presionada. Buscando ScoreManager...");
 
             if (ScoreManager.Instance != null)
             {
-                // 1. Enviamos los puntajes a LootLocker
                 ScoreManager.Instance.SubmitGameResult();
-
-                Debug.Log("✅ [DEBUG] SubmitGameResult() llamado. Revisa la consola para ver la respuesta de LootLocker.");
+                Debug.Log("✅ [DEBUG] ScoreManager encontrado. Enviando datos...");
             }
             else
             {
-                Debug.LogError("❌ [DEBUG] Error: No se encontró el ScoreManager en la escena.");
+                // --- ESTE ES EL MENSAJE QUE TE VA A SALIR AHORA ---
+                Debug.LogError("❌ [DEBUG] ERROR CRÍTICO: ScoreManager.Instance es NULL. \n" +
+                               "Causas probables:\n" +
+                               "1. No iniciaste desde la escena del Lobby.\n" +
+                               "2. El objeto '_Managers' no tiene el script ScoreManager.\n" +
+                               "3. Hay dos ScoreManagers en la escena y uno se destruyó.");
             }
         }
     }
