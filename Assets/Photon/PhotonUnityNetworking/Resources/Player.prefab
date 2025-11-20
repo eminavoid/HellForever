@@ -479,7 +479,7 @@ GameObject:
   - component: {fileID: -4706510053849194601}
   - component: {fileID: -5953744575602344133}
   - component: {fileID: 3804460377029666189}
-  - component: {fileID: 6902545936380487868}
+  - component: {fileID: -299680899226485778}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1043,7 +1043,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aaf948769fa0b6547966a5955763e82c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &6902545936380487868
+--- !u!114 &-299680899226485778
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1052,15 +1052,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 7086814085738610056}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a725e5b48c5efa4190ccb098b962420, type: 3}
+  m_Script: {fileID: 11500000, guid: 20f9d1b94d93c0b4ba186500431bfdbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerName: 
-  NetworkScore: 0
-  NetworkKills: 0
-  SetScoreTo: 0
-  SetKillsTo: 0
-  SEND_UPDATE: 0
 --- !u!1 &7475573754143545273
 GameObject:
   m_ObjectHideFlags: 0
