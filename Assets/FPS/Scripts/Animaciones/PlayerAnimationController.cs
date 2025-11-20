@@ -13,32 +13,37 @@ public class PlayerAnimationController : MonoBehaviourPun
 
     void Start()
     {
-        // Si este player es el local → ocultamos su cuerpo
-        if (photonView.IsMine)
+        ApplyLocalBodyVisibility();
+    }
+
+    void OnEnable()
+    {
+        ApplyLocalBodyVisibility();
+    }
+
+    void ApplyLocalBodyVisibility()
+    {
+        bool isLocal = photonView.IsMine;
+
+        foreach (var mesh in meshesToHide)
         {
-            foreach (var mesh in meshesToHide)
-            {
-                if (mesh == null) continue;
+            if (mesh == null) continue;
 
-                // Opción A: ocultar completamente el cuerpo
-                 mesh.enabled = false;
+            mesh.enabled = !isLocal;
 
-                // Opción B: el mesh sigue existiendo pero solo proyecta sombras
-                //mesh.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
-            }
         }
     }
 
     void Update()
     {
-        // Solo el dueño actualiza sus animaciones
+        // el locacl actualiza sus animaciones
         if (!photonView.IsMine) return;
+        if (animator == null || cc == null) return;
 
-        // Calcular velocidad horizontal
+        //velocidad horizontal
         Vector3 horizontal = new Vector3(cc.velocity.x, 0, cc.velocity.z);
         float speed = horizontal.magnitude;
 
-        // Pasar datos al Animator
         animator.SetFloat("Speed", speed);
         animator.SetBool("IsGrounded", cc.isGrounded);
     }
