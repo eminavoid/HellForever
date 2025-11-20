@@ -16,7 +16,7 @@ public class CoOpButton : MonoBehaviour
     private bool isPlayerInZone = false;
 
     private float lastPressLocalTime = 0;
-    private float buttonCooldown = 0.5;
+    private float buttonCooldown = 0.5f;
 
     private void Start()
     {
