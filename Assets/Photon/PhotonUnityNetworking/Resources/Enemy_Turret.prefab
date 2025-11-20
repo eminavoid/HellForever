@@ -208,6 +208,7 @@ GameObject:
   - component: {fileID: 3444686158330356048}
   - component: {fileID: -5377965953213360194}
   - component: {fileID: 3855136174593435782}
+  - component: {fileID: 2848378634449078977}
   m_Layer: 0
   m_Name: Enemy_Turret
   m_TagString: Untagged
@@ -431,10 +432,11 @@ MonoBehaviour:
   prefixField: -1
   Synchronization: 3
   OwnershipTransfer: 0
-  observableSearch: 0
+  observableSearch: 2
   ObservedComponents:
+  - {fileID: 6370966072896210225}
   - {fileID: 3855136174593435782}
-  - {fileID: 0}
+  - {fileID: 2848378634449078977}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -454,6 +456,20 @@ MonoBehaviour:
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
+--- !u!114 &2848378634449078977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2015434656898269652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b43443777f7bcb42b01cccd5decc5cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  turretPivot: {fileID: 7886326314632062837}
+  smoothing: 2
 --- !u!1 &2201913640410082181
 GameObject:
   m_ObjectHideFlags: 0
@@ -1692,10 +1708,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 100008, guid: fad35a70731ab804c975c717ee8862a5,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1955904179858240407}
-    - targetCorrespondingSourceObject: {fileID: 100008, guid: fad35a70731ab804c975c717ee8862a5,
-        type: 3}
-      insertIndex: -1
       addedObject: {fileID: 5795988949707199149}
   m_SourcePrefab: {fileID: 100100000, guid: fad35a70731ab804c975c717ee8862a5, type: 3}
 --- !u!1 &7886326314631838543 stripped
@@ -1776,24 +1788,12 @@ MonoBehaviour:
   prefixField: -1
   Synchronization: 3
   OwnershipTransfer: 0
-  observableSearch: 0
+  observableSearch: 2
   ObservedComponents:
-  - {fileID: 1955904179858240407}
+  - {fileID: 5795988949707199149}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &1955904179858240407
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7886326314631838549}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e01e70fd91eb5b24789933790bfe7371, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &5795988949707199149
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1819,7 +1819,7 @@ MonoBehaviour:
     ExtrapolateNumberOfStoredPositions: 1
   m_RotationModel:
     SynchronizeEnabled: 1
-    InterpolateOption: 2
+    InterpolateOption: 0
     InterpolateRotateTowardsSpeed: 180
     InterpolateLerpSpeed: 5
   m_ScaleModel:
