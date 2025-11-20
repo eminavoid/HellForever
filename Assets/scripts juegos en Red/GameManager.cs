@@ -5,6 +5,7 @@ using ExitGames.Client.Photon;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.FPS.Game;
+using Unity.FPS.UI; // Para NotificationHUDManager
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 [RequireComponent(typeof(PhotonView))]
@@ -19,19 +20,26 @@ public class GameManager : MonoBehaviourPunCallbacks
     [Header("Migration UI")]
     public GameObject migrationPanel;
     public float migrationPauseDuration = 3.0f;
+
     private const string PLAYER_LOADED_KEY = "PlayerLoaded";
     private HashSet<int> _deadPlayers = new HashSet<int>();
 
     void Awake()
     {
-        if (Instance && Instance != this) { Destroy(gameObject); return; }
+        if (Instance && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
     }
 
     void Start()
     {
-        if (migrationPanel != null) migrationPanel.SetActive(false);
+        if (migrationPanel != null)
+            migrationPanel.SetActive(false);
 
+        // Marcamos que este cliente ya cargó su escena/juego
         Hashtable props = new Hashtable
         {
             { PLAYER_LOADED_KEY, true }
@@ -61,6 +69,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             Debug.LogError("[MIGRATION] ❌ ERROR: No hay Migration Panel asignado en el Inspector.");
         }
 
+        // Pausar tiempo del juego (solo lógica que respete timeScale)
         Time.timeScale = 0f;
 
         Debug.Log($"[MIGRATION] ⏳ Esperando {migrationPauseDuration} segundos...");
@@ -69,7 +78,8 @@ public class GameManager : MonoBehaviourPunCallbacks
         Time.timeScale = 1f;
         Debug.Log("[MIGRATION] ▶️ Juego reanudado.");
 
-        if (migrationPanel != null) migrationPanel.SetActive(false);
+        if (migrationPanel != null)
+            migrationPanel.SetActive(false);
     }
 
     #endregion
@@ -93,10 +103,12 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             if (!p.CustomProperties.TryGetValue(PLAYER_LOADED_KEY, out object playerLoaded) || !(bool)playerLoaded)
             {
+                // Algún jugador todavía no está listo
                 return;
             }
         }
 
+        // Todos listos → arrancamos el juego para todos
         GetComponent<PhotonView>().RPC(nameof(RPC_StartGame), RpcTarget.All);
     }
 
@@ -108,18 +120,28 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     #endregion
 
-    #region Player Disconnect / Waves Reset
+    #region Player Disconnect / Waves + Notificación
 
-    // 🔹 NUEVO: cuando cualquier jugador se va de la sala
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         Debug.Log($"[GAME] Player left room: {otherPlayer.NickName}");
 
-        // Solo el master decide qué hacer con las olas
-        if (!PhotonNetwork.IsMasterClient) return;
+        // 1) Mostrar notificación en pantalla usando tu sistema de HUD
+        NotificationHUDManager hud = FindFirstObjectByType<NotificationHUDManager>();
+        if (hud != null)
+        {
+            hud.CreateNotification($"{otherPlayer.NickName} has disconnect");
+        }
+        else
+        {
+            Debug.LogWarning("[GAME] No se encontró NotificationHUDManager en la escena.");
+        }
 
-        // Buscar WavesManager en la escena y resetear al checkpoint de la última ola
-        var waves = FindFirstObjectByType<WavesManager>();
+        // 2) Solo el master resetea las oleadas
+        if (!PhotonNetwork.IsMasterClient)
+            return;
+
+        WavesManager waves = FindFirstObjectByType<WavesManager>();
         if (waves != null)
         {
             Debug.Log("[GAME] Reiniciando WavesManager por desconexión de un jugador.");
@@ -129,6 +151,15 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             Debug.LogWarning("[GAME] No se encontró WavesManager en la escena.");
         }
+
+        // 3) Si el jugador que se fue estaba marcado como muerto, lo removemos
+        if (_deadPlayers.Contains(otherPlayer.ActorNumber))
+        {
+            _deadPlayers.Remove(otherPlayer.ActorNumber);
+        }
+
+        // Recalcular fin de juego por si el número de jugadores cambió
+        TryEndGameIfAllDead();
     }
 
     #endregion
@@ -138,7 +169,8 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     public void RPC_NotifyPlayerDead(int playerActorNumber)
     {
-        if (!PhotonNetwork.IsMasterClient) return;
+        if (!PhotonNetwork.IsMasterClient)
+            return;
 
         _deadPlayers.Add(playerActorNumber);
         TryEndGameIfAllDead();
@@ -147,7 +179,8 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     public void RPC_NotifyPlayerRespawn(int playerActorNumber)
     {
-        if (!PhotonNetwork.IsMasterClient) return;
+        if (!PhotonNetwork.IsMasterClient)
+            return;
 
         _deadPlayers.Remove(playerActorNumber);
     }
@@ -155,8 +188,11 @@ public class GameManager : MonoBehaviourPunCallbacks
     private void TryEndGameIfAllDead()
     {
         int totalPlayers = PhotonNetwork.PlayerList.Length;
-        if (totalPlayers == 0) return;
 
+        if (totalPlayers == 0)
+            return;
+
+        // Si la cantidad de jugadores muertos >= jugadores en la sala → todos muertos
         if (_deadPlayers.Count >= totalPlayers)
         {
             GetComponent<PhotonView>().RPC(nameof(RPC_GameOverLose), RpcTarget.All);
