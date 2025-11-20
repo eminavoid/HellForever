@@ -6152,6 +6152,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spawner
       objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: maxRadius
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: minRadius
+      value: 20
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -31909,6 +31919,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7253983127304857660, guid: 761cdc9e4e883334cbdcea062d0befa7,
+        type: 3}
+      propertyPath: m_TagString
+      value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 8746678193447392789, guid: 761cdc9e4e883334cbdcea062d0befa7,
         type: 3}
@@ -117759,6 +117774,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spawner (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: maxRadius
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: minRadius
+      value: 20
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -122481,6 +122506,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Spawner (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: maxRadius
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: minRadius
+      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -221769,6 +221804,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spawner (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: maxRadius
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: minRadius
+      value: 20
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -268990,6 +269035,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spawner (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: maxRadius
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: minRadius
+      value: 20
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -280103,6 +280158,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Spawner (5)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: maxRadius
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 8600655308163067839, guid: e5308c2e5001d5945af897218a8b59e6,
+        type: 3}
+      propertyPath: minRadius
+      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
