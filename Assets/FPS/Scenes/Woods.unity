@@ -153484,7 +153484,7 @@ MonoBehaviour:
   laserDoors:
   - {fileID: 697238169}
   - {fileID: 730055672}
-  maxTimeDifferece: 0.2
+  maxTimeDifferece: 1
 --- !u!114 &1103684546
 MonoBehaviour:
   m_ObjectHideFlags: 0
