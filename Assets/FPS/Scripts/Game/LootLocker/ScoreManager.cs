@@ -1,63 +1,61 @@
 ﻿using UnityEngine;
 using LootLocker.Requests;
 using System.Collections;
+using Photon.Pun;
+using Photon.Realtime;
+using System.Linq; // Necesario para ordenar listas
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace Unity.FPS.Game
 {
-    public class ScoreManager : MonoBehaviour
+    public class ScoreManager : MonoBehaviourPunCallbacks
     {
         public static ScoreManager Instance { get; private set; }
 
-        // --- TUS KEYS ACTUALIZADAS ---
-        private const string KEY_SCORE = "top_score"; // <--- CAMBIO AQUÍ
+        private const string KEY_SCORE = "top_score";
         private const string KEY_ROUNDS = "highestround";
         private const string KEY_KILLS = "top_kills";
 
-        // Variables locales
-        private int _score = 0;
-        private int _round = 0;
-        private int _kills = 0;
+        
+        private int _localRound = 0;
 
         void Awake()
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-            }
-            else
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
+            if (Instance != null && Instance != this) { Destroy(gameObject); }
+            else { Instance = this; DontDestroyOnLoad(gameObject); }
         }
 
         public void ResetScores()
         {
-            _score = 0;
-            _round = 0;
-            _kills = 0;
-            Debug.Log("ScoreManager: Reseteado.");
+            _localRound = 0;
+        
+            Hashtable props = new Hashtable { { "Score", 0 }, { "Kills", 0 } };
+            PhotonNetwork.LocalPlayer.SetCustomProperties(props);
         }
 
+        // --- AÑADIR PUNTOS (Se guardan en la red) ---
         public void AddScore(int amount)
         {
-            _score += amount;
-            Debug.Log($"Score: {_score}");
-        }
-
-        public void AddRound()
-        {
-            _round++;
-            Debug.Log($"Ronda: {_round}");
+            int current = (int)PhotonNetwork.LocalPlayer.CustomProperties["Score"];
+            Hashtable props = new Hashtable { { "Score", current + amount } };
+            PhotonNetwork.LocalPlayer.SetCustomProperties(props);
         }
 
         public void AddKill()
         {
-            _kills++;
-            Debug.Log($"Kills PvP: {_kills}");
+            int current = (int)PhotonNetwork.LocalPlayer.CustomProperties["Kills"];
+            Hashtable props = new Hashtable { { "Kills", current + 1 } };
+            PhotonNetwork.LocalPlayer.SetCustomProperties(props);
         }
 
-        public void SubmitToLeaderboard()
+        public void AddRound()
+        {
+            _localRound++;
+         
+        }
+
+     
+        public void SubmitGameResult()
         {
             StartCoroutine(SubmitRoutine());
         }
@@ -66,22 +64,53 @@ namespace Unity.FPS.Game
         {
             string playerID = PlayerPrefs.GetString("PlayerID", "Guest");
 
-            // 1. Enviar Top Score (top_score)
-            bool doneScore = false;
-            LootLockerSDKManager.SubmitScore(playerID, _score, KEY_SCORE, (r) => { doneScore = true; });
-            yield return new WaitUntil(() => doneScore);
+            // Obtenemos el nombre actual de Photon para "pegarlo" al puntaje
+            string myName = PhotonNetwork.NickName;
+            if (string.IsNullOrEmpty(myName)) myName = "Player " + Random.Range(100, 999);
 
-            // 2. Enviar Rondas
-            bool doneRound = false;
-            LootLockerSDKManager.SubmitScore(playerID, _round, KEY_ROUNDS, (r) => { doneRound = true; });
-            yield return new WaitUntil(() => doneRound);
+            // 1. CALCULAR MVP (Score)
+            Player[] allPlayers = PhotonNetwork.PlayerList;
+            var sortedByScore = allPlayers.OrderByDescending(p => (int)(p.CustomProperties["Score"] ?? 0)).ToArray();
 
-            // 3. Enviar Kills
-            bool doneKills = false;
-            LootLockerSDKManager.SubmitScore(playerID, _kills, KEY_KILLS, (r) => { doneKills = true; });
-            yield return new WaitUntil(() => doneKills);
+            if (sortedByScore[0] == PhotonNetwork.LocalPlayer)
+            {
+                int myScore = (int)(PhotonNetwork.LocalPlayer.CustomProperties["Score"] ?? 0);
+                if (myScore > 0)
+                {
+                    bool done = false;
+                    // AQUÍ ESTÁ EL CAMBIO: Pasamos 'myName' como 4to argumento (metadata)
+                    LootLockerSDKManager.SubmitScore(playerID, myScore, KEY_SCORE, myName, (r) => { done = true; });
+                    yield return new WaitUntil(() => done);
+                    Debug.Log("🏆 Score enviado con nombre: " + myName);
+                }
+            }
 
-            Debug.Log("✅ Todos los puntajes (Top Score, Rondas, Kills) subidos.");
+            // 2. CALCULAR MVP (Kills)
+            var sortedByKills = allPlayers.OrderByDescending(p => (int)(p.CustomProperties["Kills"] ?? 0)).ToArray();
+
+            if (sortedByKills[0] == PhotonNetwork.LocalPlayer)
+            {
+                int myKills = (int)(PhotonNetwork.LocalPlayer.CustomProperties["Kills"] ?? 0);
+                if (myKills > 0)
+                {
+                    bool done = false;
+                    // AQUÍ ESTÁ EL CAMBIO: Pasamos 'myName' como metadata también
+                    LootLockerSDKManager.SubmitScore(playerID, myKills, KEY_KILLS, myName, (r) => { done = true; });
+                    yield return new WaitUntil(() => done);
+                    Debug.Log("🔫 Kills enviadas con nombre: " + myName);
+                }
+            }
+
+            // 3. RONDAS (EQUIPO)
+            if (PhotonNetwork.IsMasterClient && _localRound > 0)
+            {
+                string teamNames = string.Join(", ", allPlayers.Select(p => p.NickName));
+
+                bool done = false;
+                LootLockerSDKManager.SubmitScore(playerID, _localRound, KEY_ROUNDS, teamNames, (r) => { done = true; });
+                yield return new WaitUntil(() => done);
+                Debug.Log("🛡️ Rondas enviadas.");
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using LootLocker.Requests;
 using System.Collections;
+using Photon.Pun; // Necesario para el nombre
 
 namespace Unity.FPS.Game
 {
@@ -13,7 +14,6 @@ namespace Unity.FPS.Game
 
         IEnumerator Start()
         {
-            // Esperamos un frame para asegurar que el SDK cargó su config
             yield return null;
 
             LootLockerSDKManager.StartGuestSession((response) =>
@@ -22,6 +22,16 @@ namespace Unity.FPS.Game
                 {
                     Debug.Log("✅ LootLocker: Sesión iniciada.");
                     PlayerPrefs.SetString("PlayerID", response.player_id.ToString());
+
+                    
+                    string nickname = PhotonNetwork.NickName;
+                    if (string.IsNullOrEmpty(nickname)) nickname = "Player " + Random.Range(1000, 9999);
+
+                    LootLockerSDKManager.SetPlayerName(nickname, (nameResponse) =>
+                    {
+                        if (nameResponse.success) Debug.Log("Nombre actualizado en LootLocker: " + nickname);
+                    });
+                   
                 }
                 else
                 {

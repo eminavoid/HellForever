@@ -168,51 +168,48 @@ namespace Unity.FPS.Game
         }
 
         // Modificado para aceptar quién mató (opcional)
-        void CommitDeath(GameObject damageSource = null)
+        void CommitDeath(GameObject damageSource)
         {
             if (m_IsDead) return;
+
             m_IsDead = true;
             CurrentHealth = 0f;
             OnDie?.Invoke();
 
             // ============================================================
-            // INTEGRACIÓN LOOTLOCKER / SCOREMANAGER
+            // 🚀 INTEGRACIÓN SCORE MANAGER (PVE Y PVP)
             // ============================================================
             if (ScoreManager.Instance != null)
             {
-                // CASO 1: PvE (Matar Enemigos)
-                // Si tiene puntos y soy el Host, sumo puntos globales.
+                // 1. PVE: Si es un Enemigo (PointsOnDeath > 0) y soy el Host
                 if (PointsOnDeath > 0 && PhotonNetwork.IsMasterClient)
                 {
                     ScoreManager.Instance.AddScore(PointsOnDeath);
                 }
 
-                // CASO 2: PvP (Jugadores)
+                // 2. PVP: Si es un Jugador (PointsOnDeath == 0)
                 if (PointsOnDeath == 0)
                 {
-                    // A. Si soy YO quien murió, envío mis puntajes a la tabla
-                    if (photonView.IsMine)
-                    {
-                        ScoreManager.Instance.SubmitToLeaderboard();
-                    }
-
-                    // B. Si alguien me mató, le doy el crédito (Top Kills)
+                    // Detectar Asesino para sumar Kill
                     if (damageSource != null)
                     {
                         PhotonView killerView = damageSource.GetComponent<PhotonView>();
 
-                        // Si el asesino es válido y no es un suicidio
+                        // Si el asesino es un jugador y no es suicidio
                         if (killerView != null && killerView.gameObject != gameObject)
                         {
-                            // Buscamos el script PlayerKillHandler en el asesino
                             var killHandler = killerView.GetComponent<PlayerKillHandler>();
                             if (killHandler != null)
                             {
-                                // RPC al dueño del asesino: "Hey, sumate una kill"
+                                // Enviar RPC al dueño del asesino: "Sumate 1 Kill"
                                 killHandler.photonView.RPC("AddKillRPC", killerView.Owner);
                             }
                         }
                     }
+
+                    // NOTA: Ya no enviamos a LootLocker aquí al morir.
+                    // Se envía al final de la partida con ScoreManager.Instance.SubmitGameResult()
+                    // desde el GameManager.
                 }
             }
             // ============================================================

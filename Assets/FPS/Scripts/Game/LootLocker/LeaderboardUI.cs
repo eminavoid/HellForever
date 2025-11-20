@@ -6,53 +6,30 @@ namespace Unity.FPS.Game
 {
     public class LeaderboardUI : MonoBehaviour
     {
-        [Header("Control de Visualización")]
-        [Tooltip("Arrastra aquí el Panel (GameObject) que quieres ocultar y mostrar")]
+        [Header("Control")]
         public GameObject targetPanel;
 
-        [Header("Referencias de Tabla")]
+        [Header("Referencias")]
         public GameObject rowPrefab;
         public Transform contentParent;
 
-        // -------------------------------------------------------
-        // MÉTODOS PARA LOS BOTONES (Abrir y Cerrar)
-        // -------------------------------------------------------
-
-        // Asigna este método al botón de "Ranking" en el Menú
         public void OpenLeaderboard()
         {
-            if (targetPanel != null)
-            {
-                targetPanel.SetActive(true); // Muestra el elemento que seleccionaste
-                ShowTopScore(); // Carga los datos automáticamente
-            }
-            else
-            {
-                Debug.LogError("⚠️ No has asignado el 'Target Panel' en el Inspector de LeaderboardUI");
-            }
+            if (targetPanel) targetPanel.SetActive(true);
+            ShowTopScore();
         }
 
-        // Asigna este método al botón "X" (Cerrar)
         public void CloseLeaderboard()
         {
-            if (targetPanel != null)
-            {
-                targetPanel.SetActive(false); // Oculta el elemento que seleccionaste
-            }
+            if (targetPanel) targetPanel.SetActive(false);
         }
-
-        // -------------------------------------------------------
-        // LÓGICA INTERNA (Carga de datos blindada)
-        // -------------------------------------------------------
 
         public void ShowScores(string key)
         {
             if (rowPrefab == null || contentParent == null) return;
 
-            // Limpiar tabla
             foreach (Transform child in contentParent) Destroy(child.gameObject);
-
-            
+            Debug.Log($"🔄 Cargando: {key}...");
 
             LootLockerSDKManager.GetScoreList(key, 10, (response) =>
             {
@@ -67,24 +44,36 @@ namespace Unity.FPS.Game
 
                         if (texts.Length >= 3)
                         {
+                            // 1. RANK
                             texts[0].text = item.rank + ".";
 
-                            // Protección contra nombres nulos
-                            string pName = "Unknown";
-                            if (item.player != null)
-                                pName = !string.IsNullOrEmpty(item.player.name) ? item.player.name : item.player.id.ToString();
-                            else
-                                pName = item.member_id;
+                            // 2. NOMBRE (LA LÓGICA NUEVA)
+                            // Prioridad 1: Metadata (El nombre que enviamos manualmente)
+                            // Prioridad 2: Player Name (El nombre de cuenta LootLocker)
+                            // Prioridad 3: ID (Si todo falla)
+                            string displayName = "";
 
-                            texts[1].text = pName;
+                            if (!string.IsNullOrEmpty(item.metadata))
+                            {
+                                displayName = item.metadata; // <--- ESTO SOLUCIONA TU PROBLEMA
+                            }
+                            else if (item.player != null && !string.IsNullOrEmpty(item.player.name))
+                            {
+                                displayName = item.player.name;
+                            }
+                            else
+                            {
+                                displayName = item.member_id;
+                            }
+
+                            texts[1].text = displayName;
+
+                            // 3. PUNTAJE
                             texts[2].text = item.score.ToString();
                         }
                     }
                 }
-                else
-                {
-                    Debug.LogError("Error LootLocker: " + response.errorData.message);
-                }
+                else Debug.LogError("Error LootLocker: " + response.errorData.message);
             });
         }
 

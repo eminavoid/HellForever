@@ -52,6 +52,9 @@ MonoBehaviour:
   - RPC_NotifyPlayerDead
   - RPC_NotifyPlayerRespawn
   - RPC_StartGame
+  - RPC_SetButtonState
+  - RPC_RegisteButtonPress
+  - RPC_RegisterButtonPress
   - AddKillRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0
