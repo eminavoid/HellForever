@@ -70,6 +70,11 @@ namespace Unity.FPS.AI
             if (PhotonNetwork.IsMasterClient)
             {
                 UpdateTurretAiming();
+
+                if (AiState == AIState.Attack && TurretPivot != null)
+                {
+                    TurretPivot.rotation = m_PivotAimingRotation;
+                }
             }
             else
             {
@@ -78,7 +83,7 @@ namespace Unity.FPS.AI
                     TurretPivot.localRotation = Quaternion.Slerp(
                         TurretPivot.localRotation,
                         m_NetworkPivotRotation,
-                        Time.deltaTime * AimRotationSharpness     
+                        Time.deltaTime * AimRotationSharpness
                     );
                 }
             }

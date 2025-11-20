@@ -351,7 +351,7 @@ MonoBehaviour:
   TurretPivot: {fileID: 7886326314632062837}
   TurretAimPoint: {fileID: 6571005840976436832}
   Animator: {fileID: 7886326314639247517}
-  AimRotationSharpness: 5
+  AimRotationSharpness: 340.5
   LookAtRotationSharpness: 2.5
   DetectionFireDelay: 1.1
   AimingTransitionBlendTime: 1
@@ -429,9 +429,9 @@ MonoBehaviour:
   ObservedComponentsFoldoutOpen: 1
   Group: 0
   prefixField: -1
-  Synchronization: 3
+  Synchronization: 2
   OwnershipTransfer: 0
-  observableSearch: 2
+  observableSearch: 1
   ObservedComponents:
   - {fileID: 6370966072896210225}
   - {fileID: 4234830436940505133}
@@ -454,7 +454,7 @@ MonoBehaviour:
   m_SynchronizePosition: 1
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
-  m_UseLocal: 0
+  m_UseLocal: 1
 --- !u!1 &2201913640410082181
 GameObject:
   m_ObjectHideFlags: 0

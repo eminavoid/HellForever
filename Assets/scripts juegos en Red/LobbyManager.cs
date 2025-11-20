@@ -37,6 +37,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     void Start()
     {
+        PhotonNetwork.SerializationRate = 30;
+        PhotonNetwork.SendRate = 30;
+
         lobbyItemParent = lobbyScrollView.content;
         ActivatePanel(panel_Connect);
 
