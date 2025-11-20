@@ -2699,6 +2699,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 726612a236310fa43a2e8d7843013288, type: 3}
+--- !u!1 &20065363 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2417090592480509175, guid: 726612a236310fa43a2e8d7843013288,
+    type: 3}
+  m_PrefabInstance: {fileID: 20065362}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &20065364 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 7720234256975867606, guid: 726612a236310fa43a2e8d7843013288,
+    type: 3}
+  m_PrefabInstance: {fileID: 20065362}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &21808614
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -253848,8 +253860,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 817c4a56ca01ef6428081cd4aeab5eee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scoreboardPanel: {fileID: 0}
-  container: {fileID: 0}
+  scoreboardPanel: {fileID: 20065363}
+  container: {fileID: 20065364}
   rowPrefab: {fileID: 4458828036673213982, guid: 4be990cb62bbf024ebe1a5f2469f9c0f,
     type: 3}
   openKey: 282
