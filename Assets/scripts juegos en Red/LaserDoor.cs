@@ -27,22 +27,17 @@ public class LaserDoor : MonoBehaviourPun
 
     private void CheckSync()
     {
-        // Si falta algún botón por presionar, no hacemos nada
         if (lastTimeButton1 < 0 || lastTimeButton2 < 0) return;
 
         double timeDiff = System.Math.Abs(lastTimeButton1 - lastTimeButton2);
 
-        // --- LOG DE DEPURACIÓN MEJORADO ---
         Debug.LogWarning($"? CALCULO DE TIEMPO:\n" +
                          $"Diferencia Real: {timeDiff.ToString("F4")} segs\n" +
                          $"Máximo Permitido: {maxTimeDifference.ToString("F4")} segs\n" +
                          $"¿Se abre?: {(timeDiff <= maxTimeDifference)}");
-        // ----------------------------------
-
         if (timeDiff <= maxTimeDifference)
         {
             OpenDoor();
-            // Reseteamos los tiempos para que no se vuelva a abrir sola si la cierras
             lastTimeButton1 = -1;
             lastTimeButton2 = -1;
         }
