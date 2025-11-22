@@ -23,8 +23,6 @@ public class PlayerNameTag : MonoBehaviourPun
 
         if (cam != null && nameText != null)
         {
-            // ✅ Billboard que siempre mira hacia la cámara,
-            // manteniendo "arriba" en el eje Y
             nameText.transform.rotation = Quaternion.LookRotation(
                 cam.forward,
                 Vector3.up

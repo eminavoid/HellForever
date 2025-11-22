@@ -39,7 +39,6 @@ namespace Unity.FPS.ours
                 return;
             }
 
-            //players por tag
             GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
             if (players == null || players.Length == 0)
             {
@@ -47,11 +46,9 @@ namespace Unity.FPS.ours
                 return;
             }
 
-            //elegir palayer aleat.
             GameObject targetPlayer = players[Random.Range(0, players.Length)];
             Vector3 center = targetPlayer.transform.position;
 
-            //posición sobre un "circulo" [minRadius, maxRadius]
             float r = Random.Range(minRadius, maxRadius);
             Vector2 offset2D = Random.insideUnitCircle.normalized * r;
             Vector3 spawnPos = center + new Vector3(offset2D.x, 0f, offset2D.y);

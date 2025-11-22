@@ -13,16 +13,13 @@ namespace Unity.FPS.UI
 
         public void Initialize(Player player)
         {
-            // 1. Nombre
             nameText.text = player.NickName;
 
-            // Color especial si soy YO
             if (player == PhotonNetwork.LocalPlayer)
             {
                 nameText.color = Color.yellow;
             }
 
-            // 2. Score (Leemos de la nube de Photon)
             if (player.CustomProperties.TryGetValue("Score", out object scoreObj))
             {
                 scoreText.text = scoreObj.ToString();
@@ -32,7 +29,6 @@ namespace Unity.FPS.UI
                 scoreText.text = "0";
             }
 
-            // 3. Kills (Leemos de la nube de Photon)
             if (player.CustomProperties.TryGetValue("Kills", out object killsObj))
             {
                 killsText.text = killsObj.ToString();

@@ -15,21 +15,15 @@ namespace Unity.FPS.Game
 
         void Start()
         {
-            // Lo llamamos al inicio
             ApplyLocalBodyVisibility();
         }
 
-        // Usamos LateUpdate para "ganarle" a cualquier otro script que intente
-        // activar las meshes al revivir.
         void LateUpdate()
         {
-            // Solo nos importa si es MI jugador local
             if (!photonView.IsMine) return;
 
-            // Forzamos que se oculten en cada frame antes de renderizar
             ForceHideLocalMeshes();
 
-            // Actualizar animaciones (si es necesario hacerlo aquí o en Update)
             UpdateAnimations();
         }
 

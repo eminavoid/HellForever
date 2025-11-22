@@ -9,7 +9,7 @@ public class StormManager : MonoBehaviourPun, IPunObservable
     [Header("Fase 1: Achicamiento y Escalada")]
     public float maxMapRadius = 50f;
     public float minStormRadius = 5f;
-    public float shrinkDuration = 60f; // El daño sube durante este tiempo
+    public float shrinkDuration = 60f;       
 
     [Header("Fase 2: Movimiento Final")]
     public float lateGameMoveSpeed = 1.5f;
@@ -26,17 +26,14 @@ public class StormManager : MonoBehaviourPun, IPunObservable
     public Vector3 currentCenter;
     public float currentDamage;
 
-    // Variables internas Sincronización
     private float m_NetworkRadius;
     private Vector3 m_NetworkCenter;
     private float m_NetworkDamage;
 
-    // Variables Fase 1
     private float m_StartTime;
     private Vector3 m_StartCenter;
     private Vector3 m_TargetShrinkCenter;
 
-    // Variables Fase 2
     private Vector3 m_WanderTarget;
     private bool m_IsWandering = false;
 
@@ -68,35 +65,26 @@ public class StormManager : MonoBehaviourPun, IPunObservable
 
     void Update()
     {
-        // --- LÓGICA DEL MASTER CLIENT ---
         if (PhotonNetwork.IsMasterClient)
         {
             float timeSinceStart = Time.time - m_StartTime;
 
-            // === FASE 1: ACHICARSE Y SUBIR DAÑO ===
             if (timeSinceStart < shrinkDuration)
             {
-                float t = timeSinceStart / shrinkDuration; // 0 a 1
+                float t = timeSinceStart / shrinkDuration;    
 
-                // 1. Interpolamos Tamaño
                 currentRadius = Mathf.Lerp(maxMapRadius, minStormRadius, t);
 
-                // 2. Interpolamos Posición
                 currentCenter = Vector3.Lerp(m_StartCenter, m_TargetShrinkCenter, t);
 
-                // 3. Interpolamos DAÑO (De 1 a 15 mientras se achica)
                 currentDamage = Mathf.Lerp(initialDamage, maxDamage, t);
             }
-            // === FASE 2: MOVERSE CON DAÑO MÁXIMO ===
             else
             {
-                // Fijamos el daño al máximo
                 currentDamage = maxDamage;
 
-                // Fijamos el radio al mínimo
                 currentRadius = minStormRadius;
 
-                // Lógica de movimiento aleatorio (Wandering)
                 if (!m_IsWandering)
                 {
                     m_IsWandering = true;
@@ -110,7 +98,6 @@ public class StormManager : MonoBehaviourPun, IPunObservable
                 currentCenter = Vector3.MoveTowards(currentCenter, m_WanderTarget, lateGameMoveSpeed * Time.deltaTime);
             }
         }
-        // --- LÓGICA CLIENTES ---
         else
         {
             currentRadius = Mathf.Lerp(currentRadius, m_NetworkRadius, Time.deltaTime * 5f);
@@ -118,7 +105,6 @@ public class StormManager : MonoBehaviourPun, IPunObservable
             currentDamage = Mathf.Lerp(currentDamage, m_NetworkDamage, Time.deltaTime * 5f);
         }
 
-        // --- ACTUALIZAR VISUALES ---
         if (visualStormTransform != null)
         {
             visualStormTransform.position = currentCenter;
@@ -126,7 +112,6 @@ public class StormManager : MonoBehaviourPun, IPunObservable
             visualStormTransform.localScale = new Vector3(diameter, 50f, diameter);
         }
 
-        // --- APLICAR DAÑO ---
         CheckStormDamage();
     }
 

@@ -44,11 +44,9 @@ namespace Unity.FPS.Game
 
         public static event Action<int, int> OnWaveChanged;
 
-        // 🔹 NUEVO: índice actual de ola y referencia al loop
         private int currentWaveIndex = 0;
         private Coroutine gameLoopCoroutine;
 
-        // 🔹 NUEVO: clave usada en las CustomProperties de la room
         private const string ROOM_WAVE_INDEX_KEY = "CurrentWaveIndex";
 
         public int WavesCount => wavesList.Count;
@@ -68,17 +66,14 @@ namespace Unity.FPS.Game
         {
             yield return new WaitUntil(() => PhotonNetwork.InRoom && PhotonNetwork.IsConnected);
 
-            // 🔹 ahora usamos un método que tiene en cuenta el checkpoint
             StartGameLoopIfMaster();
         }
 
-        // 🔹 NUEVO: lógica para arrancar el loop solo en el Master y desde la ola guardada
         private void StartGameLoopIfMaster()
         {
             if (!PhotonNetwork.IsMasterClient) return;
-            if (gameLoopCoroutine != null) return; // ya está corriendo
+            if (gameLoopCoroutine != null) return;    
 
-            // Leer ola desde las CustomProperties de la sala (si existe)
             if (PhotonNetwork.CurrentRoom != null &&
                 PhotonNetwork.CurrentRoom.CustomProperties != null &&
                 PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(ROOM_WAVE_INDEX_KEY, out object waveObj))
@@ -93,10 +88,8 @@ namespace Unity.FPS.Game
             gameLoopCoroutine = StartCoroutine(GameLoop());
         }
 
-        // 🔹 NUEVO: cuando cambia el MasterClient, el nuevo Master reanuda las oleadas
         public override void OnMasterClientSwitched(Player newMasterClient)
         {
-            // Solo el nuevo master debe relanzar el loop
             if (!PhotonNetwork.IsMasterClient) return;
 
             Debug.Log("[WavesManager] Nuevo Master, reanudando oleadas desde el checkpoint...");
@@ -110,12 +103,10 @@ namespace Unity.FPS.Game
             StartGameLoopIfMaster();
         }
 
-        // 🔹 NUEVO: método público para forzar un reset a la última ola guardada
         public void ForceRestartFromSavedWave()
         {
             if (!PhotonNetwork.IsMasterClient) return;
 
-            // Releer por las dudas el índice guardado en la room
             if (PhotonNetwork.CurrentRoom != null &&
                 PhotonNetwork.CurrentRoom.CustomProperties != null &&
                 PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(ROOM_WAVE_INDEX_KEY, out object waveObj))
@@ -144,13 +135,10 @@ namespace Unity.FPS.Game
             isGameActive = true;
             Debug.Log(" INICIO DEL JUEGO");
 
-            // FASE 1: OLEADAS NORMALES
-            // 🔹 IMPORTANTE: arrancamos desde currentWaveIndex (checkpoint)
             for (int i = currentWaveIndex; i < wavesList.Count; i++)
             {
                 currentWaveIndex = i;
 
-                // 🔹 Guardar el índice de la ola actual en las CustomProperties de la sala
                 if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom != null)
                 {
                     Hashtable props = new Hashtable
@@ -160,13 +148,11 @@ namespace Unity.FPS.Game
                     PhotonNetwork.CurrentRoom.SetCustomProperties(props);
                 }
 
-                // Disparar evento
                 OnWaveChanged?.Invoke(i + 1, wavesList.Count);
 
                 yield return StartCoroutine(RunSingleWave(wavesList[i]));
             }
 
-            // FASE 2: ENDLESS
             if (enableEndless && wavesList.Count > 0)
             {
                 Debug.Log("♾️ INICIANDO MODO ENDLESS");
@@ -185,7 +171,6 @@ namespace Unity.FPS.Game
 
                     int currentDisplayRound = wavesList.Count + endlessRoundNumber;
 
-                    // Disparar evento (Total 999 indica infinito)
                     OnWaveChanged?.Invoke(currentDisplayRound, 999);
 
                     yield return StartCoroutine(RunSingleWave(endlessWave));
@@ -197,7 +182,7 @@ namespace Unity.FPS.Game
                 EndGame();
             }
 
-            gameLoopCoroutine = null; // por las dudas
+            gameLoopCoroutine = null;    
         }
 
         private IEnumerator RunSingleWave(WaveSettings currentWave)

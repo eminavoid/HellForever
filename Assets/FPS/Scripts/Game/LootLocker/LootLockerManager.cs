@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using LootLocker.Requests;
 using System.Collections;
-using Photon.Pun; // Necesario para el nombre
+using Photon.Pun;     
 
 namespace Unity.FPS.Game
 {
