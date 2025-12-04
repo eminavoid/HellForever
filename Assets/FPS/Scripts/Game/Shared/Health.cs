@@ -52,12 +52,10 @@ namespace Unity.FPS.Game
 
                 if (isPlayerTarget)
                 {
-                    // Player: todos aplican el mismo cálculo local
                     photonView.RPC(nameof(RPC_TakeDamage), RpcTarget.All, baseDamage, srcId);
                 }
                 else
                 {
-                    // Enemigo: solicitar al MASTER que aplique y difunda
                     if (PhotonNetwork.IsMasterClient)
                     {
                         photonView.RPC(nameof(RPC_TakeDamage), RpcTarget.All, baseDamage, srcId);
@@ -108,7 +106,6 @@ namespace Unity.FPS.Game
             return (CurrentHealth / MaxHealth) <= CriticalHealthRatio;
         }
 
-        // --- RPCs ---
 
         [PunRPC]
         void RPC_TakeDamage(float baseDamage, int sourceViewId)
@@ -135,7 +132,6 @@ namespace Unity.FPS.Game
             CommitDeath(null);
         }
 
-        // --- Lógica Interna ---
 
         void ApplyDamageWithTargetMultipliers(float baseDamage, GameObject damageSource)
         {
@@ -154,7 +150,6 @@ namespace Unity.FPS.Game
 
             if (CurrentHealth <= 0f && !m_IsDead)
             {
-                // Aquí pasamos quién nos mató
                 CommitDeath(damageSource);
             }
         }
@@ -171,9 +166,6 @@ namespace Unity.FPS.Game
                 OnHealed?.Invoke(applied);
         }
 
-        // ===========================
-        //  MUERTE + CADÁVER
-        // ===========================
         void CommitDeath(GameObject damageSource)
         {
             if (m_IsDead) return;
@@ -181,50 +173,38 @@ namespace Unity.FPS.Game
             m_IsDead = true;
             CurrentHealth = 0f;
 
-            // 1) Spawnear cuerpo de muerte (solo para jugadores)
             SpawnDeathBody();
 
-            // 2) Notificar muerte a otros sistemas
             OnDie?.Invoke();
 
-            // 3) Integración Score Manager (PVE y PVP)
             if (ScoreManager.Instance != null)
             {
-                // 1. PVE: Si es un Enemigo (PointsOnDeath > 0) y soy el Host
                 if (PointsOnDeath > 0 && PhotonNetwork.IsMasterClient)
                 {
                     ScoreManager.Instance.AddScore(PointsOnDeath);
                 }
-
-                // 2. PVP: Si es un Jugador (PointsOnDeath == 0)
                 if (PointsOnDeath == 0)
                 {
-                    // Detectar Asesino para sumar Kill
                     if (damageSource != null)
                     {
                         PhotonView killerView = damageSource.GetComponent<PhotonView>();
 
-                        // Si el asesino es un jugador y no es suicidio
                         if (killerView != null && killerView.gameObject != gameObject)
                         {
                             var killHandler = killerView.GetComponent<PlayerKillHandler>();
                             if (killHandler != null)
                             {
-                                // Enviar RPC al dueño del asesino: "Sumate 1 Kill"
                                 killHandler.photonView.RPC("AddKillRPC", killerView.Owner);
                             }
                         }
                     }
 
-                    // NOTA: LootLocker se maneja al final de la partida
-                    // con ScoreManager.Instance.SubmitGameResult()
                 }
             }
         }
 
         void SpawnDeathBody()
         {
-            // Solo queremos cuerpo de muerte para el jugador, no para todos los enemigos
             if (DeathBodyPrefab == null) return;
             if (!CompareTag("Player")) return;
 
@@ -233,7 +213,6 @@ namespace Unity.FPS.Game
 
             if (PhotonNetwork.IsConnected)
             {
-                // Prefab debe estar en una carpeta Resources y tener PhotonView
                 PhotonNetwork.Instantiate(DeathBodyPrefab.name, pos, rot);
             }
             else
@@ -275,8 +254,6 @@ namespace Unity.FPS.Game
         {
             return !m_IsDead && CurrentHealth < MaxHealth;
         }
-
-        // --- Métodos de Compatibilidad ---
 
         public void RespawnFull()
         {
