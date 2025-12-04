@@ -25,6 +25,10 @@ namespace Unity.FPS.Game
         [Tooltip("Umbral (0-1) para considerar vida crítica")]
         [Range(0f, 1f)] public float CriticalHealthRatio = 0.3f;
 
+        [Header("Death Body")]
+        [Tooltip("Prefab del cuerpo de muerte que se spawnea al morir (solo Player)")]
+        public GameObject DeathBodyPrefab;
+
         public UnityAction OnDie;
         public UnityAction<float, GameObject> OnDamaged;
         public UnityAction<float> OnHealed;
@@ -167,18 +171,23 @@ namespace Unity.FPS.Game
                 OnHealed?.Invoke(applied);
         }
 
-        // Modificado para aceptar quién mató (opcional)
+        // ===========================
+        //  MUERTE + CADÁVER
+        // ===========================
         void CommitDeath(GameObject damageSource)
         {
             if (m_IsDead) return;
 
             m_IsDead = true;
             CurrentHealth = 0f;
+
+            // 1) Spawnear cuerpo de muerte (solo para jugadores)
+            SpawnDeathBody();
+
+            // 2) Notificar muerte a otros sistemas
             OnDie?.Invoke();
 
-            // ============================================================
-            // 🚀 INTEGRACIÓN SCORE MANAGER (PVE Y PVP)
-            // ============================================================
+            // 3) Integración Score Manager (PVE y PVP)
             if (ScoreManager.Instance != null)
             {
                 // 1. PVE: Si es un Enemigo (PointsOnDeath > 0) y soy el Host
@@ -207,12 +216,30 @@ namespace Unity.FPS.Game
                         }
                     }
 
-                    // NOTA: Ya no enviamos a LootLocker aquí al morir.
-                    // Se envía al final de la partida con ScoreManager.Instance.SubmitGameResult()
-                    // desde el GameManager.
+                    // NOTA: LootLocker se maneja al final de la partida
+                    // con ScoreManager.Instance.SubmitGameResult()
                 }
             }
-            // ============================================================
+        }
+
+        void SpawnDeathBody()
+        {
+            // Solo queremos cuerpo de muerte para el jugador, no para todos los enemigos
+            if (DeathBodyPrefab == null) return;
+            if (!CompareTag("Player")) return;
+
+            Vector3 pos = transform.position;
+            Quaternion rot = transform.rotation;
+
+            if (PhotonNetwork.IsConnected)
+            {
+                // Prefab debe estar en una carpeta Resources y tener PhotonView
+                PhotonNetwork.Instantiate(DeathBodyPrefab.name, pos, rot);
+            }
+            else
+            {
+                Instantiate(DeathBodyPrefab, pos, rot);
+            }
         }
 
         float GetDamageTakenMultiplier(GameObject damageSource)

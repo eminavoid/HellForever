@@ -481,6 +481,7 @@ GameObject:
   - component: {fileID: 3804460377029666189}
   - component: {fileID: -299680899226485778}
   - component: {fileID: 6521882530017128805}
+  - component: {fileID: -7712916606550483228}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -592,6 +593,8 @@ MonoBehaviour:
   Invincible: 0
   PointsOnDeath: 0
   CriticalHealthRatio: 0.3
+  DeathBodyPrefab: {fileID: 5565617717605951190, guid: 3d74c0ece6fc29a4ea7834af245037ac,
+    type: 3}
 --- !u!114 &5013943744098121684
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1073,6 +1076,21 @@ MonoBehaviour:
   meshesToHide:
   - {fileID: 8472269742620858142}
   - {fileID: 1566891851944736057}
+--- !u!114 &-7712916606550483228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7086814085738610056}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 008789cb123e9804ca154e60b048084f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraTransform: {fileID: 5518806488105412959}
+  deathOffset: {x: 0, y: 2, z: -4}
+  deathFOV: 50
 --- !u!1 &7895987204696795037
 GameObject:
   m_ObjectHideFlags: 0

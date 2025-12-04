@@ -213,6 +213,7 @@ MonoBehaviour:
   Invincible: 0
   PointsOnDeath: 1
   CriticalHealthRatio: 0.3
+  DeathBodyPrefab: {fileID: 0}
 --- !u!114 &3464315327790461765
 MonoBehaviour:
   m_ObjectHideFlags: 0
