@@ -41,13 +41,35 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         PhotonNetwork.SendRate = 30;
 
         lobbyItemParent = lobbyScrollView.content;
-        ActivatePanel(panel_Connect);
 
         PhotonNetwork.AutomaticallySyncScene = true;
 
         string defaultName = PlayerPrefs.GetString(PlayerNamePrefKey, "");
         playerNameInput.text = defaultName;
-        PhotonNetwork.ConnectUsingSettings();
+
+        if (PhotonNetwork.InRoom)
+        {
+            Debug.Log("Still in room. Leaving room now...");
+            PhotonNetwork.LeaveRoom();
+            return;
+        }
+
+        if (!PhotonNetwork.IsConnected)
+        {
+            ActivatePanel(panel_Connect);
+            PhotonNetwork.ConnectUsingSettings();
+        }
+        else
+        {
+            if (PhotonNetwork.InLobby)
+            {
+                ActivatePanel(panel_MainMenu);
+            }
+            else
+            {
+                PhotonNetwork.JoinLobby();
+            }
+        }
     }
 
     #region Photon Callbacks
@@ -185,6 +207,11 @@ public void OnPlayerNameChanged(string newName)
 
     public void JoinRoom(string roomName)
     {
+        if (!PhotonNetwork.InLobby || !PhotonNetwork.IsConnectedAndReady)
+        {
+            Debug.LogError("Not ready to join room yet. Waiting for connection...");
+            return;
+        }
         SetFinalPlayerName();    
 
         PhotonNetwork.JoinRoom(roomName);

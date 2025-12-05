@@ -482,6 +482,7 @@ GameObject:
   - component: {fileID: -299680899226485778}
   - component: {fileID: 6521882530017128805}
   - component: {fileID: -7712916606550483228}
+  - component: {fileID: 8587653476862783240}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1091,6 +1092,20 @@ MonoBehaviour:
   cameraTransform: {fileID: 5518806488105412959}
   deathOffset: {x: 0, y: 2, z: -4}
   deathFOV: 50
+--- !u!114 &8587653476862783240
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7086814085738610056}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 631c49bd178d46e4fad9ba71bc6173e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  WeaponHolder: {fileID: 5848386511841198756}
+  HUD_Tag: LocalHUD
 --- !u!1 &7895987204696795037
 GameObject:
   m_ObjectHideFlags: 0

@@ -208,16 +208,18 @@ namespace Unity.FPS.Game
             if (DeathBodyPrefab == null) return;
             if (!CompareTag("Player")) return;
 
-            Vector3 pos = transform.position;
-            Quaternion rot = transform.rotation;
-
             if (PhotonNetwork.IsConnected)
             {
-                PhotonNetwork.Instantiate(DeathBodyPrefab.name, pos, rot);
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    Vector3 pos = transform.position;
+                    Quaternion rot = transform.rotation;
+                    PhotonNetwork.Instantiate(DeathBodyPrefab.name, pos, rot);
+                }
             }
             else
             {
-                Instantiate(DeathBodyPrefab, pos, rot);
+                Instantiate(DeathBodyPrefab, transform.position, transform.rotation);
             }
         }
 

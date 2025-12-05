@@ -116517,6 +116517,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 468125249627671472, guid: b56d97a71ae94dc4a969663787be5749,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5413216575430527056, guid: b56d97a71ae94dc4a969663787be5749,
+        type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 6812594740982805267, guid: b56d97a71ae94dc4a969663787be5749,
         type: 3}
       propertyPath: m_Name
@@ -119836,7 +119846,7 @@ PrefabInstance:
     - target: {fileID: 4556017177857218877, guid: 4cecb4bbafab60f41b5a0eb4c7bea5c9,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 33.62
+      value: -11.02
       objectReference: {fileID: 0}
     - target: {fileID: 4556017177857218877, guid: 4cecb4bbafab60f41b5a0eb4c7bea5c9,
         type: 3}
@@ -119846,7 +119856,7 @@ PrefabInstance:
     - target: {fileID: 4556017177857218877, guid: 4cecb4bbafab60f41b5a0eb4c7bea5c9,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 31.689646
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4556017177857218877, guid: 4cecb4bbafab60f41b5a0eb4c7bea5c9,
         type: 3}
@@ -119885,13 +119895,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7121614836877662850, guid: 4cecb4bbafab60f41b5a0eb4c7bea5c9,
         type: 3}
+      propertyPath: maxMapRadius
+      value: 271.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7121614836877662850, guid: 4cecb4bbafab60f41b5a0eb4c7bea5c9,
+        type: 3}
       propertyPath: initialDamage
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 7121614836877662850, guid: 4cecb4bbafab60f41b5a0eb4c7bea5c9,
         type: 3}
       propertyPath: minStormRadius
-      value: 283
+      value: 271.6
       objectReference: {fileID: 0}
     - target: {fileID: 7121614836877662850, guid: 4cecb4bbafab60f41b5a0eb4c7bea5c9,
         type: 3}
@@ -214095,6 +214110,16 @@ PrefabInstance:
         type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
+      objectReference: {fileID: 0}
+    - target: {fileID: 7491870013581781384, guid: c996b53e9f849234393d1e90f68d1679,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7491870013581781384, guid: c996b53e9f849234393d1e90f68d1679,
+        type: 3}
+      propertyPath: m_TagString
+      value: LocalHUD
       objectReference: {fileID: 0}
     - target: {fileID: 8041970913709386448, guid: c996b53e9f849234393d1e90f68d1679,
         type: 3}
