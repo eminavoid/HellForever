@@ -5,6 +5,7 @@ using Unity.FPS.Game;
 using Unity.FPS.Gameplay;
 using UnityEngine;
 using UnityEngine.Events;
+using Unity.FPS.ours;
 
 
 namespace Unity.FPS.Gameplay
@@ -140,8 +141,7 @@ namespace Unity.FPS.Gameplay
             if (isDead) return;
             isDead = true;
 
-            if (debugLogs)
-                Debug.Log($"[EnemyChaser] Muerto. Destruir={destroyOnDeath}");
+            if(ScoreManager.Instance != null) ScoreManager.Instance.AddScore(ScoreManager.Instance.scorePerEnemy);
 
             // VFX muerte
             if (deathVfx)

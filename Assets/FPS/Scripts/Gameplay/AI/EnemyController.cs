@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.FPS.Game;
+using Unity.FPS.ours;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
@@ -359,6 +360,8 @@ namespace Unity.FPS.AI
 
         void OnDie()
         {
+            if (ScoreManager.Instance != null) ScoreManager.Instance.AddScore(ScoreManager.Instance.scorePerEnemy);
+
             // spawn a particle system when dying
             var vfx = Instantiate(DeathVfx, DeathVfxSpawnPoint.position, Quaternion.identity);
             Destroy(vfx, 5f);

@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using Unity.FPS.Ours;
+using Unity.FPS.ours;
 
 namespace Unity.FPS.Gameplay
 {
@@ -171,6 +172,8 @@ namespace Unity.FPS.Gameplay
 
             m_Controller.enableOverlapRecovery = true;
             m_Health.OnDie += OnDie;
+
+            m_Health.OnDamaged += OnPLayerDamaged;
 
             SetCrouchingState(false, true);
             UpdateCharacterHeight(true);
@@ -481,7 +484,15 @@ namespace Unity.FPS.Gameplay
 
             OnStanceChanged?.Invoke(crouched);
             IsCrouching = crouched;
-            return true;
+            return true; 
+        }
+
+        void OnPLayerDamaged(float damageAmount, GameObject damageSource)
+        {
+            if (ScoreManager.Instance != null)
+            {
+                ScoreManager.Instance.RemoveScore(ScoreManager.Instance.scoreLostOnHit);
+            }
         }
     }
 }
