@@ -18,7 +18,7 @@ namespace Unity.FPS.ours
 
         [Header("UI References")]
         private TextMeshProUGUI scoreText;
-        private const string SCORE_TEXT_TAG = "ScoreTextDisplay";
+        private const string SCORE_TEXT_TAG = "ScoreText";
 
         [Header("Score Values")]
         [SerializeField] public int scorePerEnemy = 100; 
@@ -37,6 +37,10 @@ namespace Unity.FPS.ours
         private const string HISTORY_KEY = "FullHistorySave";
 
         public event Action OnScoresUpdated;
+
+
+        [Header("Efectos Visuales")]
+        public GameObject floatingTextPrefab;
 
         void Awake()
         {
@@ -119,12 +123,50 @@ namespace Unity.FPS.ours
         {
             currentScore += amount;
             UpdateSimpleUI(SceneManager.GetActiveScene().buildIndex);
+
+            try
+            {
+                ShowFloatingText(amount, true);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("Error mostrando texto flotante: " + e.Message);
+            }
         }
 
         public void RemoveScore(int amount)
         {
             currentScore -= amount;
             UpdateSimpleUI(SceneManager.GetActiveScene().buildIndex);
+
+            try
+            {
+                ShowFloatingText(amount, false);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("Error mostrando texto flotante: " + e.Message);
+            }
+        }
+
+        void ShowFloatingText(int amount, bool isGain)
+        {
+            if (floatingTextPrefab == null) return;
+
+            GameObject scoreUI = GameObject.FindWithTag(SCORE_TEXT_TAG);
+
+            if (scoreUI != null)
+            {
+                GameObject floatText = Instantiate(floatingTextPrefab, scoreUI.transform.parent);
+
+                floatText.transform.position = scoreUI.transform.position + new Vector3(50, -30, 0);
+
+                var script = floatText.GetComponent<FloatingScoreUI>();
+                if (script != null)
+                {
+                    script.Setup(amount, isGain);
+                }
+            }
         }
 
         void UpdateSimpleUI(int sceneIndex)

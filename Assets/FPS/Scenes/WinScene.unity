@@ -557,8 +557,12 @@ MonoBehaviour:
   scorePerEnemy: 100
   scoreLostOnHit: 300
   currentScore: 0
-  lastRunScore: 0
-  scoreHistory: 
+  lastRunData:
+    score: 0
+    timePlayed: 0
+    isVictory: 0
+  history: []
+  floatingTextPrefab: {fileID: 0}
 --- !u!4 &347465384
 Transform:
   m_ObjectHideFlags: 0
@@ -796,8 +800,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 22
+  m_fontSizeBase: 22
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

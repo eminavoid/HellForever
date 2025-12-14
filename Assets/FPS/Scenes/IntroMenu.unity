@@ -4456,6 +4456,8 @@ MonoBehaviour:
     timePlayed: 0
     isVictory: 0
   history: []
+  floatingTextPrefab: {fileID: 466170316431567357, guid: 1c2bada9d16421841a0af80d937bb889,
+    type: 3}
 --- !u!1 &1947208091
 GameObject:
   m_ObjectHideFlags: 0
