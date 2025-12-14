@@ -288863,6 +288863,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: ScoreCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 8264062271554572415, guid: 98e95b3012e20f14d9f02ff7b7716527,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 356.72
+      objectReference: {fileID: 0}
+    - target: {fileID: 8264062271554572415, guid: 98e95b3012e20f14d9f02ff7b7716527,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 200
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
