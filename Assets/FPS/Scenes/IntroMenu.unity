@@ -4449,7 +4449,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scorePerEnemy: 100
-  scoreLostOnHit: 300
+  scoreLostOnHit: 10
   currentScore: 0
   lastRunData:
     score: 0
