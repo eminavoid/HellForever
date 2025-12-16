@@ -12,7 +12,8 @@ namespace Unity.FPS.Game
         [SerializeField] private int wavesCount = 5;
         [SerializeField] private int minEnemyCount = 1;
         [SerializeField] private int maxEnemyCount = 10;
-        private List<EnemySpawner> spawners;
+        private List<EnemySpawner> enemySpawner;
+        private List<TrapSpawner> trapSpawner;
         [SerializeField] private List<GameObject> spawnObjects;
         private QueueTDA<List<GameObject>> spawnQueue;
 
@@ -23,7 +24,8 @@ namespace Unity.FPS.Game
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Awake()
         {
-            spawners = new List<EnemySpawner>();
+            enemySpawner = new List<EnemySpawner>();
+            trapSpawner = new List<TrapSpawner>();
             spawnQueue = new QueueTDA<List<GameObject>>();
             spawnQueue.InicializarCola(wavesCount);
             firstWaveStart = false;
@@ -47,12 +49,17 @@ namespace Unity.FPS.Game
 
         public void registerSpawner(EnemySpawner enemySpawner)
         {
-            spawners.Add(enemySpawner);
+            this.enemySpawner.Add(enemySpawner);
+        }
+
+        public void registerSpawner(TrapSpawner trapSpawner)
+        {
+            this.trapSpawner.Add(trapSpawner);
         }
 
         public void unregisterSpawner(EnemySpawner enemySpawner)
         {
-            spawners.Remove(enemySpawner);
+            this.enemySpawner.Remove(enemySpawner);
         }
 
         public void WavesCreation()
@@ -75,13 +82,21 @@ namespace Unity.FPS.Game
         public void WaveExecute()
         {
             
-            if (!spawnQueue.ColaVacia() && spawners.Count != 0)
+            if (!spawnQueue.ColaVacia() && enemySpawner.Count != 0)
             {
                 List<GameObject> wave = spawnQueue.Primero();
 
                 foreach (GameObject obj in wave)
                 {
-                    spawners[UnityEngine.Random.Range(0, spawners.Count)].SpawnEnemyOnRadius(obj);
+                    if (obj.CompareTag("Enemy")) 
+                    { 
+                        enemySpawner[UnityEngine.Random.Range(0, enemySpawner.Count)].SpawnEnemyOnRadius(obj); 
+                    }
+                    else if (obj.CompareTag("Trap")) 
+                    {                         
+                        trapSpawner[UnityEngine.Random.Range(0, trapSpawner.Count)].SpawnEnemyOnRadius(obj);
+                    }
+
                 }
 
                 spawnQueue.Desacolar();

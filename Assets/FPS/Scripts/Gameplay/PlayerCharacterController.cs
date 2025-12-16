@@ -494,5 +494,19 @@ namespace Unity.FPS.Gameplay
                 ScoreManager.Instance.RemoveScore(ScoreManager.Instance.scoreLostOnHit);
             }
         }
+
+        public void AddImpulse(Vector3 impulse)
+        {
+            // Apply impulse directly to the character velocity
+            CharacterVelocity += impulse;
+
+            // Prevent immediate re-grounding (gives the impulse time to take effect)
+            m_LastTimeJumped = Time.time;
+            IsGrounded = false;
+            HasJumpedThisFrame = true;
+
+            // record latest impact speed so landing/fall-damage logic has a reference if needed
+            m_LatestImpactSpeed = CharacterVelocity;
+        }
     }
 }
