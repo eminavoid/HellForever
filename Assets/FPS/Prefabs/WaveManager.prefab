@@ -45,9 +45,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wavesCount: 5
-  minEnemyCount: 1
-  maxEnemyCount: 10
+  minEnemyCount: 15
+  maxEnemyCount: 25
   spawnObjects:
+  - {fileID: 4029795698512442334, guid: c2c9abcc2570cec46999dad4ba340cab, type: 3}
   - {fileID: 2015434656898269652, guid: 25a1b0efadb966e44889fce712c8ff8d, type: 3}
   - {fileID: 2015434656898269652, guid: e29d43f43cc5d82499dd9926e01847d3, type: 3}
-  - {fileID: 4029795698512442334, guid: c2c9abcc2570cec46999dad4ba340cab, type: 3}
+  - {fileID: 4295647380089840815, guid: 81dfbf90ade292d418ff24f5617a7701, type: 3}
+  - {fileID: 1455092618984993322, guid: 77bef67643a3e1b4a9f6c0145d204bef, type: 3}
