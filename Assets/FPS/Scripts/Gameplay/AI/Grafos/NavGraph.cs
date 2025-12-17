@@ -51,6 +51,8 @@ namespace Unity.FPS.Pathfinding
         [ContextMenu("Rebuild")]
         public void Rebuild()
         {
+            nodes.RemoveAll(n => n == null);
+
             indexOf.Clear();
             int n = nodes.Count;
             adj = new List<int>[n];
